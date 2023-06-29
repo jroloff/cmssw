@@ -52,10 +52,17 @@ private:
   MonitorElement* emtfTrackBXVsCSCLCT[3];
   MonitorElement* emtfTrackBXVsRPCHit[3];
   MonitorElement* emtfTrackPt;
+<<<<<<< HEAD
   MonitorElement* emtfTrackUnconstrainedPt;
   MonitorElement* emtfTrackDxy;
   MonitorElement* emtfTrackPtHighQuality;  //Chad Freer May 8 2018
   MonitorElement* emtfTrackUnconstrainedPtHighQuality;
+=======
+  MonitorElement* emtfTrackUnconstrainedPt;             // Lucas Faria de Sa Tucker Jun 28 2023
+  MonitorElement* emtfTrackDxy;                         // Lucas Faria de Sa Tucker Jun 28 2023
+  MonitorElement* emtfTrackPtHighQuality;               //Chad Freer May 8 2018
+  MonitorElement* emtfTrackUnconstrainedPtHighQuality;  // Lucas Faria de Sa Tucker Jun 28 2023
+>>>>>>> f37ffdf4010 (Corrected formatting of plot names)
   MonitorElement* emtfTrackPtHighQualityHighPT;
   MonitorElement* emtfTrackUnconstrainedPtHighQualityHighUPT;
   MonitorElement* emtfTrackEta;

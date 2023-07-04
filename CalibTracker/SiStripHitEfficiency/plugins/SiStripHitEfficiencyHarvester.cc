@@ -351,7 +351,7 @@ void SiStripHitEfficiencyHarvester::dqmEndJob(DQMStore::IBooker& booker, DQMStor
             // use only the "good" modules
             if (stripQuality_->getBadApvs(det) == 0 && calibData_.checkFedError(det)) {
               const auto eff = num / denom;
-              const auto eff_up = (num <= denom) ? TEfficiency::Bayesian(denom, num, .99, 1, 1, true) : 1.f;
+              const auto eff_up = TEfficiency::Bayesian(denom, num, .99, 1, 1, true);
 
               if ((denom >= nModsMin_) && (eff_up < layer_min_eff)) {
                 //We have a bad module, put it in the list!

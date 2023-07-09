@@ -103,16 +103,23 @@ HLTDebugRAW = cms.PSet(
         'keep *_hltDeepCombinedSecondaryVertexBJetTagsPF_*_*',
         'keep *_hltDeepSecondaryVertexTagInfosPF_*_*',
         'keep *_hltDisplacedhltIter4PFlowTrackSelectionHighPurity_*_*',
+<<<<<<< HEAD
         'keep *_hltDoubletRecoveryPFlowTrackSelectionHighPurityPPOnAA_*_*',
         'keep *_hltDoubletRecoveryPFlowTrackSelectionHighPurity_*_*',
+=======
+>>>>>>> 923394748f5 (HLT menu development for 13_0_X)
         'keep *_hltDt4DSegments_*_*',
         'keep *_hltEcalPhiSymFilter_*_*',
         'keep *_hltEcalRecHit_*_*',
         'keep *_hltEgammaCandidates_*_*',
         'keep *_hltEgammaGsfElectrons_*_*',
         'keep *_hltEgammaGsfTracks_*_*',
+<<<<<<< HEAD
         'keep *_hltFEDSelectorGEM_*_*',
         'keep *_hltFEDSelectorL1_*_*',
+=======
+        'keep *_hltElectronsVertex_*_*',
+>>>>>>> 923394748f5 (HLT menu development for 13_0_X)
         'keep *_hltFEDSelectorTCDS_*_*',
         'keep *_hltFastPVPixelTracksMerger_*_*',
         'keep *_hltFastPVPixelTracksRecover_*_*',
@@ -120,8 +127,14 @@ HLTDebugRAW = cms.PSet(
         'keep *_hltFastPVPixelVertices_*_*',
         'keep *_hltFastPixelBLifetimeL3Associator_*_*',
         'keep *_hltFastPrimaryVertex_*_*',
+<<<<<<< HEAD
         'keep *_hltGtStage2Digis_*_*',
         'keep *_hltHITrackingSiStripRawToClustersFacilityFullZeroSuppression_*_*',
+=======
+        'keep *_hltGemRecHits_*_*',
+        'keep *_hltGtStage2Digis_*_*',
+        'keep *_hltGtStage2ObjectMap_*_*',
+>>>>>>> 923394748f5 (HLT menu development for 13_0_X)
         'keep *_hltHbhereco_*_*',
         'keep *_hltHfreco_*_*',
         'keep *_hltHoreco_*_*',
@@ -130,6 +143,10 @@ HLTDebugRAW = cms.PSet(
         'keep *_hltIsolPixelTrackProdHB_*_*',
         'keep *_hltIsolPixelTrackProdHE_*_*',
         'keep *_hltIter0HighPtTkMuTrackSelectionHighPurity_*_*',
+<<<<<<< HEAD
+=======
+        'keep *_hltIter2ForElectronsMerged_*_*',
+>>>>>>> 923394748f5 (HLT menu development for 13_0_X)
         'keep *_hltIter2MergedForDisplaced_*_*',
         'keep *_hltIterL3GlbMuon_*_*',
         'keep *_hltIterL3MuonAndMuonFromL1Merged_*_*',
@@ -192,7 +209,10 @@ HLTDebugRAW = cms.PSet(
         'keep *_hltSelector4CentralJetsL1FastJet_*_*',
         'keep *_hltSelector8CentralJetsL1FastJet_*_*',
         'keep *_hltSelectorJets20L1FastJet_*_*',
+<<<<<<< HEAD
         'keep *_hltSiPixelClustersAfterSplittingPPOnAA_*_*',
+=======
+>>>>>>> 923394748f5 (HLT menu development for 13_0_X)
         'keep *_hltSiPixelClustersCache_*_*',
         'keep *_hltSiPixelClusters_*_*',
         'keep *_hltSiStripClusterizerForRawPrime_*_*',
@@ -207,7 +227,10 @@ HLTDebugRAW = cms.PSet(
         'keep *_hltVerticesPFFilterPPOnAA_*_*',
         'keep *_hltVerticesPFFilter_*_*',
         'keep *_hltVerticesPFSelector_*_*',
+<<<<<<< HEAD
         'keep DetIds_hltSiStripRawToDigi_*_*',
+=======
+>>>>>>> 923394748f5 (HLT menu development for 13_0_X)
         'keep FEDRawDataCollection_rawDataCollector_*_*',
         'keep FEDRawDataCollection_rawDataRepacker_*_*',
         'keep FEDRawDataCollection_source_*_*',
@@ -269,16 +292,23 @@ HLTDebugFEVT = cms.PSet(
         'keep *_hltDeepCombinedSecondaryVertexBJetTagsPF_*_*',
         'keep *_hltDeepSecondaryVertexTagInfosPF_*_*',
         'keep *_hltDisplacedhltIter4PFlowTrackSelectionHighPurity_*_*',
+<<<<<<< HEAD
         'keep *_hltDoubletRecoveryPFlowTrackSelectionHighPurityPPOnAA_*_*',
         'keep *_hltDoubletRecoveryPFlowTrackSelectionHighPurity_*_*',
+=======
+>>>>>>> 923394748f5 (HLT menu development for 13_0_X)
         'keep *_hltDt4DSegments_*_*',
         'keep *_hltEcalPhiSymFilter_*_*',
         'keep *_hltEcalRecHit_*_*',
         'keep *_hltEgammaCandidates_*_*',
         'keep *_hltEgammaGsfElectrons_*_*',
         'keep *_hltEgammaGsfTracks_*_*',
+<<<<<<< HEAD
         'keep *_hltFEDSelectorGEM_*_*',
         'keep *_hltFEDSelectorL1_*_*',
+=======
+        'keep *_hltElectronsVertex_*_*',
+>>>>>>> 923394748f5 (HLT menu development for 13_0_X)
         'keep *_hltFEDSelectorTCDS_*_*',
         'keep *_hltFastPVPixelTracksMerger_*_*',
         'keep *_hltFastPVPixelTracksRecover_*_*',
@@ -286,8 +316,14 @@ HLTDebugFEVT = cms.PSet(
         'keep *_hltFastPVPixelVertices_*_*',
         'keep *_hltFastPixelBLifetimeL3Associator_*_*',
         'keep *_hltFastPrimaryVertex_*_*',
+<<<<<<< HEAD
         'keep *_hltGtStage2Digis_*_*',
         'keep *_hltHITrackingSiStripRawToClustersFacilityFullZeroSuppression_*_*',
+=======
+        'keep *_hltGemRecHits_*_*',
+        'keep *_hltGtStage2Digis_*_*',
+        'keep *_hltGtStage2ObjectMap_*_*',
+>>>>>>> 923394748f5 (HLT menu development for 13_0_X)
         'keep *_hltHbhereco_*_*',
         'keep *_hltHfreco_*_*',
         'keep *_hltHoreco_*_*',
@@ -296,6 +332,10 @@ HLTDebugFEVT = cms.PSet(
         'keep *_hltIsolPixelTrackProdHB_*_*',
         'keep *_hltIsolPixelTrackProdHE_*_*',
         'keep *_hltIter0HighPtTkMuTrackSelectionHighPurity_*_*',
+<<<<<<< HEAD
+=======
+        'keep *_hltIter2ForElectronsMerged_*_*',
+>>>>>>> 923394748f5 (HLT menu development for 13_0_X)
         'keep *_hltIter2MergedForDisplaced_*_*',
         'keep *_hltIterL3GlbMuon_*_*',
         'keep *_hltIterL3MuonAndMuonFromL1Merged_*_*',
@@ -358,7 +398,10 @@ HLTDebugFEVT = cms.PSet(
         'keep *_hltSelector4CentralJetsL1FastJet_*_*',
         'keep *_hltSelector8CentralJetsL1FastJet_*_*',
         'keep *_hltSelectorJets20L1FastJet_*_*',
+<<<<<<< HEAD
         'keep *_hltSiPixelClustersAfterSplittingPPOnAA_*_*',
+=======
+>>>>>>> 923394748f5 (HLT menu development for 13_0_X)
         'keep *_hltSiPixelClustersCache_*_*',
         'keep *_hltSiPixelClusters_*_*',
         'keep *_hltSiStripClusterizerForRawPrime_*_*',
@@ -373,7 +416,10 @@ HLTDebugFEVT = cms.PSet(
         'keep *_hltVerticesPFFilterPPOnAA_*_*',
         'keep *_hltVerticesPFFilter_*_*',
         'keep *_hltVerticesPFSelector_*_*',
+<<<<<<< HEAD
         'keep DetIds_hltSiStripRawToDigi_*_*',
+=======
+>>>>>>> 923394748f5 (HLT menu development for 13_0_X)
         'keep FEDRawDataCollection_rawDataCollector_*_*',
         'keep FEDRawDataCollection_rawDataRepacker_*_*',
         'keep FEDRawDataCollection_source_*_*',

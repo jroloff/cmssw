@@ -312,8 +312,6 @@ namespace ecal {
             }
           }
 
-          __syncthreads();
-
           // check if this thread has the lowest bad block
           if (bad_block && i_to_access < ch_with_bad_block) {
             atomicMin(&ch_with_bad_block, i_to_access);

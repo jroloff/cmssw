@@ -1029,8 +1029,8 @@ void L1TStage2EMTF::analyze(const edm::Event& e, const edm::EventSetup& c) {
   emtfnTracks->Fill(std::min(nTracks, emtfnTracks->getTH1F()->GetNbinsX() - 1));
  
   constexpr int singleMuQuality = 12;
-  constexpr int singleMuPT = 22;
-  constexpr int singleMuUPT = 10;  //Lucas Faria de Sa Tucker June 28 2023
+  constexpr float singleMuPT = 22;
+  constexpr float singleMuUPT = 10;
 
   constexpr int singleMuQuality = 12;
   constexpr float singleMuPT = 22;

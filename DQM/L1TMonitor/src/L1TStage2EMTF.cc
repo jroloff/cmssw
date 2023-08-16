@@ -181,10 +181,6 @@ void L1TStage2EMTF::bookHistograms(DQMStore::IBooker& ibooker, const edm::Run&, 
 
   emtfTrackDxy = ibooker.book1D("emtfTrackDxy", "EMTF Track d_{xy}", 3, 0, 3);
   emtfTrackDxy->setAxisTitle("Track d_{xy}", 1);
-<<<<<<< HEAD
-=======
-  // end new plots
->>>>>>> f37ffdf4010 (Corrected formatting of plot names)
 
   emtfTrackEta = ibooker.book1D("emtfTrackEta", "EMTF Track #eta", 100, -2.5, 2.5);
   emtfTrackEta->setAxisTitle("Track #eta", 1);
@@ -1033,8 +1029,8 @@ void L1TStage2EMTF::analyze(const edm::Event& e, const edm::EventSetup& c) {
   emtfnTracks->Fill(std::min(nTracks, emtfnTracks->getTH1F()->GetNbinsX() - 1));
  
   constexpr int singleMuQuality = 12;
-  constexpr int singleMuPT = 22;
-  constexpr int singleMuUPT = 10;  //Lucas Faria de Sa Tucker June 28 2023
+  constexpr float singleMuPT = 22;
+  constexpr float singleMuUPT = 10;
 
   constexpr int singleMuQuality = 12;
   constexpr float singleMuPT = 22;
@@ -1058,13 +1054,8 @@ void L1TStage2EMTF::analyze(const edm::Event& e, const edm::EventSetup& c) {
     emtfTracknHits->Fill(numHits);
     emtfTrackBX->Fill(endcap * (sector - 0.5), Track->BX());
     emtfTrackPt->Fill(Track->Pt());
-<<<<<<< HEAD
     emtfTrackDxy->Fill(Track->GMT_dxy());
     emtfTrackUnconstrainedPt->Fill(Track->Pt_dxy());
-=======
-    emtfTrackDxy->Fill(Track->GMT_dxy());             //Lucas Faria de Sa Tucker June 28 2023
-    emtfTrackUnconstrainedPt->Fill(Track->Pt_dxy());  //Lucas Faria de Sa Tucker June 28 2023
->>>>>>> f37ffdf4010 (Corrected formatting of plot names)
     emtfTrackEta->Fill(eta);
 
     emtfTrackOccupancy->Fill(eta, phi_glob_rad);

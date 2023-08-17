@@ -66,8 +66,7 @@ ALCARECOCalibrationTracksRefitAAG = TrackRefitter.clone(src = cms.InputTag("ALCA
 # track filter can be moved in acalreco if no other users
 ALCARECOTrackFilterRefitAAG = cms.Sequence(ALCARECOCalibrationTracksAAG +
                                            offlineBeamSpot +
-                                           ALCARECOCalibrationTracksRefitAAG,
-                                           cms.Task(SiPixelTemplateStoreESProducer) )
+                                           ALCARECOCalibrationTracksRefitAAG )
 
 # ------------------------------------------------------------------------------
 # This is the module actually doing the calibration

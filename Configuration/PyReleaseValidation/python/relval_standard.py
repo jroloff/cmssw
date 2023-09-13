@@ -569,6 +569,10 @@ workflows[141.902] = ['',['RunUPC2023','RECODR3_2023_HIN','HARVESTDPROMPTR3']]
 ### run3-2023 (2023 HI data RawPrime with re-HLT)
 workflows[142.0] = ['',['RunHIPhysicsRawPrime2023A','HLTDR3_HI2023ARawprime','RECOHIRUN3_reHLT_2023','HARVESTRUN3_HI2023A']]
 
+### run3 (2022) reMINIAOD+NANO ###
+workflows[140.201] = ['',['RunJetMET2022D_reMINI', 'REMINIAOD_data2022']]
+workflows[140.202] = ['',['RunJetMET2022D_reMINI', 'REMININANO_data2022']]
+
 ### run3 (2023) ###
 workflows[141.001] = ['',['RunMuon2023B','HLTDR3_2023B','RECONANORUN3_reHLT_2023B','HARVESTRUN3_2023B']]
 workflows[141.002] = ['',['RunZeroBias2023B','HLTDR3_2023B','RECONANORUN3_ZB_reHLT_2023B','HARVESTRUN3_ZB_2023B']]

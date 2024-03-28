@@ -15,11 +15,6 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.load("DQMServices.Core.DQM_cfg")
 process.load("DQMServices.Components.DQMEnvironment_cfi")
 
-# my client and my Tests
-process.load('DQMOffline.ParticleFlow.DQMExample_Step3_cfi')
-process.load('DQMServices.Examples.test.DQMExample_GenericClient_cfi')
-process.load('DQMServices.Examples.test.DQMExample_qTester_cfi')
-
 
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(1)
@@ -37,23 +32,14 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:mc', '')  #for MC
 
 
 # Path and EndPath definitions
-process.myHarvesting = cms.Path(process.DQMExampleStep3)
-process.myEff = cms.Path(process.DQMExampleGenericClient)
-process.myTest = cms.Path(process.DQMExample_qTester)
 process.dqmsave_step = cms.Path(process.DQMSaver)
 
 # Schedule definition
 process.schedule = cms.Schedule(
-                                process.myEff,
-                                process.myTest,
-                                process.myHarvesting,
                                 process.dqmsave_step
     )
 
 process.DQMStore.verbose =  cms.untracked.int32(1)
 process.DQMStore.verboseQT =  cms.untracked.int32(1)
 
-#process.dqmSaver.saveAtJobEnd = cms.untracked.bool(True)
-#process.dqmSaver.forceRunNumber = cms.untracked.int32(123456)
-
-process.dqmSaver.workflow = '/TTbarLepton/myTest/DQM'
+process.dqmSaver.workflow = '/ParticleFlow/DQM/hists'

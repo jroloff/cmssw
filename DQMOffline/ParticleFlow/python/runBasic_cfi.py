@@ -1,5 +1,4 @@
 import FWCore.ParameterSet.Config as cms
-from DQMOffline.ParticleFlow.basicConfig_cff import *
 from DQMServices.Core.DQMEDAnalyzer import DQMEDAnalyzer
 
 PFAnalyzer = DQMEDAnalyzer("PFAnalyzer",
@@ -7,8 +6,13 @@ PFAnalyzer = DQMEDAnalyzer("PFAnalyzer",
     pfCandidates             = cms.InputTag("particleFlow"),
     PVCollection             = cms.InputTag("offlinePrimaryVerticesWithBS"),
 
-
-    jetAnalysis2 = jetAnalysis.clone(),
+    jetAnalysis2 = cms.PSet(
+      observables     = cms.vstring('pt,50.,0.,300.', 'hcalE,50,0,300', 'eOverP,50,0,5'),
+      chargedPFObservables     = cms.vstring('pt,50.,0.,300.'),
+      neutralPFObservables     = cms.vstring('pt,50.,0.,300.'),
+      cutList     = cms.vstring('eta,-2,2', 'nTrkInBlock,0.5,1.5'),
+      jetCutList     = cms.vstring('pt,150,10000'),
+    )
 
 
 )

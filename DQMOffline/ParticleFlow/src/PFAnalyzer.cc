@@ -23,10 +23,12 @@
 
 // ***********************************************************
 PFAnalyzer::PFAnalyzer(const edm::ParameterSet& pSet){
+  std::cout << "Jenn " << __LINE__ << std::endl;
   m_directory = "ParticleFlow";
   parameters_ = pSet.getParameter<edm::ParameterSet>("pfAnalysis");
 
   thePfCandidateCollection_ = consumes<reco::PFCandidateCollection>(pSet.getParameter<edm::InputTag>("pfCandidates"));
+  std::cout << "Jenn " << __LINE__ << std::endl;
   pfJetsToken_ = consumes<reco::PFJetCollection>(pSet.getParameter<edm::InputTag>("pfJetCollection"));
 
   // TODO we might want to define some observables that are only for PFCs in jets,
@@ -37,6 +39,7 @@ PFAnalyzer::PFAnalyzer(const edm::ParameterSet& pSet){
   m_cutList = parameters_.getParameter<vstring>("cutList");
   // List of jet cuts that we apply for the case of plotting PFCs in jets
   m_jetCutList = parameters_.getParameter<vstring>("jetCutList");
+  std::cout << "Jenn " << __LINE__ << std::endl;
 
   // Link observable strings to the static functions defined in the header file
   // Many of these are quite trivial, but this enables a simple way to include a 
@@ -80,6 +83,7 @@ PFAnalyzer::PFAnalyzer(const edm::ParameterSet& pSet){
   m_funcMap["eOverP"] = getEoverP;
   m_funcMap["nTrkInBlock"] = getNTracksInBlock;
 
+  std::cout << "Jenn " << __LINE__ << std::endl;
   // Link jet observables to static functions in the header file.
   // This is very similar to m_funcMap, but for jets instead.
   m_jetFuncMap["pt"] = getJetPt;
@@ -111,6 +115,7 @@ PFAnalyzer::PFAnalyzer(const edm::ParameterSet& pSet){
     m_jetBinList.push_back(getBinList(m_jetCutList[i]));
     m_jetCutList[i] = observableName;
   }
+  std::cout << "Jenn " << __LINE__ << std::endl;
 }
 
 // ***********************************************************
@@ -120,6 +125,7 @@ PFAnalyzer::~PFAnalyzer() {
 
 // ***********************************************************
 void PFAnalyzer::bookHistograms(DQMStore::IBooker& ibooker, edm::Run const& iRun, edm::EventSetup const&) {
+  std::cout << "Jenn " << __LINE__ << std::endl;
   ibooker.setCurrentFolder(m_directory);
 
   m_allSuffixes = getAllSuffixes(m_cutList, m_binList);
@@ -246,6 +252,7 @@ void PFAnalyzer::bookHistograms(DQMStore::IBooker& ibooker, edm::Run const& iRun
       }
     }    
   }
+  std::cout << "Jenn " << __LINE__ << std::endl;
 }
 
 void PFAnalyzer::bookMESetSelection(std::string DirName, DQMStore::IBooker& ibooker) {

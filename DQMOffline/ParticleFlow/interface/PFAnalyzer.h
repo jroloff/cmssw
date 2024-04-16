@@ -68,18 +68,34 @@ private:
   // Book MonitorElements
   void bookMESetSelection(std::string, DQMStore::IBooker&);
 
-  bool passesPFCuts(const reco::PFCandidate pfCand);
-  bool passesJetCuts(const reco::PFJet jetCand);
+  bool passesEventSelection(const edm::Event& iEvent);
 
+  int getPFBin(const reco::PFCandidate pfCand);
+  int getJetBin(const reco::PFJet jetCand);
+
+
+  int getBinNumber(double binVal, std::vector<double> bins);
+  int getBinNumbers(std::vector<double> binVal, std::vector<std::vector<double> > bins);
+  std::vector<double> getBinList(std::string binString);
+
+  std::vector<std::string> getAllSuffixes(std::vector<std::string> observables, std::vector<std::vector<double> > binnings);
+  std::string stringWithDecimals(int bin, std::vector<double> bins);
+
+
+
+
+  std::string getSuffix(std::vector<int> binList,  std::vector<std::string> observables, std::vector<std::vector<double> > binnings);
 
 
   // Various functions designed to get information from a PF canddidate
   static double getPt(const reco::PFCandidate pfCand){ return pfCand.pt();}
   static double getEta(const reco::PFCandidate pfCand){ return pfCand.eta();}
   static double getPhi(const reco::PFCandidate pfCand){ return pfCand.phi();}
+
+
+
   static double getTime(const reco::PFCandidate pfCand){ return pfCand.time();}
-  static double getECalEFrac(const reco::PFCandidate pfCand){ return pfCand.ecalEnergy() / pfCand.energy();}
-  static double getHCalEFrac(const reco::PFCandidate pfCand){ return pfCand.hcalEnergy() / pfCand.energy();}
+
   static double getHcalEnergy_depth1(const reco::PFCandidate pfCand){ return pfCand.hcalDepthEnergyFraction(1);}
   static double getHcalEnergy_depth2(const reco::PFCandidate pfCand){ return pfCand.hcalDepthEnergyFraction(2);}
   static double getHcalEnergy_depth3(const reco::PFCandidate pfCand){ return pfCand.hcalDepthEnergyFraction(3);}
@@ -88,10 +104,34 @@ private:
   static double getHcalEnergy_depth6(const reco::PFCandidate pfCand){ return pfCand.hcalDepthEnergyFraction(6);}
   static double getHcalEnergy_depth7(const reco::PFCandidate pfCand){ return pfCand.hcalDepthEnergyFraction(7);}
 
+  static double getEcalEnergy(const reco::PFCandidate pfCand){ return pfCand.ecalEnergy();}
+  static double getRawEcalEnergy(const reco::PFCandidate pfCand){ return pfCand.rawEcalEnergy();}
+  static double getHcalEnergy(const reco::PFCandidate pfCand){ return pfCand.hcalEnergy();}
+  static double getRawHcalEnergy(const reco::PFCandidate pfCand){ return pfCand.rawHcalEnergy();}
+  static double getHOEnergy(const reco::PFCandidate pfCand){ return pfCand.hoEnergy();}
+  static double getRawHOEnergy(const reco::PFCandidate pfCand){ return pfCand.rawHoEnergy();}
+
+  static double getMVAIsolated(const reco::PFCandidate pfCand){ return pfCand.mva_Isolated();}
+  static double getMVAEPi(const reco::PFCandidate pfCand){ return pfCand.mva_e_pi();}
+  static double getMVAEMu(const reco::PFCandidate pfCand){ return pfCand.mva_e_mu();}
+  static double getMVAPiMu(const reco::PFCandidate pfCand){ return pfCand.mva_pi_mu();}
+  static double getMVANothingGamma(const reco::PFCandidate pfCand){ return pfCand.mva_nothing_gamma();}
+  static double getMVANothingNH(const reco::PFCandidate pfCand){ return pfCand.mva_nothing_nh();}
+  static double getMVAGammaNH(const reco::PFCandidate pfCand){ return pfCand.mva_gamma_nh();}
+  
+  static double getDNNESigIsolated(const reco::PFCandidate pfCand){ return pfCand.dnn_e_sigIsolated();}
+  static double getDNNESigNonIsolated(const reco::PFCandidate pfCand){ return pfCand.dnn_e_sigNonIsolated();}
+  static double getDNNEBkgNonIsolated(const reco::PFCandidate pfCand){ return pfCand.dnn_e_bkgNonIsolated();}
+  static double getDNNEBkgTauIsolated(const reco::PFCandidate pfCand){ return pfCand.dnn_e_bkgTau();}
+  static double getDNNEBkgPhotonIsolated(const reco::PFCandidate pfCand){ return pfCand.dnn_e_bkgPhoton();}
+
+  static double getECalEFrac(const reco::PFCandidate pfCand){ return pfCand.ecalEnergy() / pfCand.energy();}
+  static double getHCalEFrac(const reco::PFCandidate pfCand){ return pfCand.hcalEnergy() / pfCand.energy();}
   static double getTrackPt(const reco::PFCandidate pfCand){
                            if(pfCand.trackRef().isNonnull()) return (pfCand.trackRef())->pt();
                            return 0;
                           }
+
   static double getEoverP(const reco::PFCandidate pfCand){ 
     double energy = 0;
     int maxElement = pfCand.elementsInBlocks().size();
@@ -189,6 +229,8 @@ private:
   edm::EDGetTokenT<reco::PFJetCollection> pfJetsToken_;
 
 
+  std::vector<std::string> m_allSuffixes;
+  std::vector<std::string> m_allJetSuffixes;
 
   // The directory where the output is stored
   std::string m_directory;
@@ -216,8 +258,9 @@ private:
   // The observable name should have an entry in m_funcMap to define how
   // it can be retrieved from a PFCandidate.
   vstring m_cutList;
-  std::vector<double> m_cutMins;
-  std::vector<double> m_cutMaxes;
+  //std::vector<double> m_cutMins;
+  //std::vector<double> m_cutMaxes;
+  std::vector<std::vector<double> > m_binList;
 
   // Information on what cuts should be applied to PFJets, in the case that we 
   // match PFCs to jets.In the config file, this should come as a comma-separated list of 
@@ -225,8 +268,9 @@ private:
   // The observable name should have an entry in m_jetFuncMap to define how
   // it can be retrieved from a PFJet.
   vstring m_jetCutList;
-  std::vector<double> m_jetCutMins;
-  std::vector<double> m_jetCutMaxes;
+  //std::vector<double> m_jetCutMins;
+  //std::vector<double> m_jetCutMaxes;
+  std::vector<std::vector<double> > m_jetBinList;
 
 
   // The dR radius used to match PFCs to jets.

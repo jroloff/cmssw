@@ -23,27 +23,20 @@
 
 // ***********************************************************
 PFAnalyzer::PFAnalyzer(const edm::ParameterSet& pSet){
-  std::cout << "Jenn " << __LINE__ << std::endl;
   m_directory = "ParticleFlow";
   parameters_ = pSet.getParameter<edm::ParameterSet>("pfAnalysis");
-  std::cout << "Jenn " << __LINE__ << std::endl;
 
   thePfCandidateCollection_ = consumes<reco::PFCandidateCollection>(pSet.getParameter<edm::InputTag>("pfCandidates"));
-  std::cout << "Jenn " << __LINE__ << std::endl;
   pfJetsToken_ = consumes<reco::PFJetCollection>(pSet.getParameter<edm::InputTag>("pfJetCollection"));
-  std::cout << "Jenn " << __LINE__ << std::endl;
 
   // TODO we might want to define some observables that are only for PFCs in jets,
   // and that might take a jet as an input to the function as well
   m_observables = parameters_.getParameter<vstring>("observables");
-  std::cout << "Jenn " << __LINE__ << std::endl;
 
   // List of cuts applied to PFCs that we want to plot
   m_cutList = parameters_.getParameter<vstring>("cutList");
-  std::cout << "Jenn " << __LINE__ << std::endl;
   // List of jet cuts that we apply for the case of plotting PFCs in jets
   m_jetCutList = parameters_.getParameter<vstring>("jetCutList");
-  std::cout << "Jenn " << __LINE__ << std::endl;
 
   // Link observable strings to the static functions defined in the header file
   // Many of these are quite trivial, but this enables a simple way to include a 
@@ -87,7 +80,6 @@ PFAnalyzer::PFAnalyzer(const edm::ParameterSet& pSet){
   m_funcMap["eOverP"] = getEoverP;
   m_funcMap["nTrkInBlock"] = getNTracksInBlock;
 
-  std::cout << "Jenn " << __LINE__ << std::endl;
   // Link jet observables to static functions in the header file.
   // This is very similar to m_funcMap, but for jets instead.
   m_jetFuncMap["pt"] = getJetPt;
@@ -119,7 +111,6 @@ PFAnalyzer::PFAnalyzer(const edm::ParameterSet& pSet){
     m_jetBinList.push_back(getBinList(m_jetCutList[i]));
     m_jetCutList[i] = observableName;
   }
-  std::cout << "Jenn " << __LINE__ << std::endl;
 }
 
 // ***********************************************************
@@ -129,7 +120,6 @@ PFAnalyzer::~PFAnalyzer() {
 
 // ***********************************************************
 void PFAnalyzer::bookHistograms(DQMStore::IBooker& ibooker, edm::Run const& iRun, edm::EventSetup const&) {
-  std::cout << "Jenn " << __LINE__ << std::endl;
   ibooker.setCurrentFolder(m_directory);
 
   m_allSuffixes = getAllSuffixes(m_cutList, m_binList);
@@ -170,7 +160,6 @@ void PFAnalyzer::bookHistograms(DQMStore::IBooker& ibooker, edm::Run const& iRun
       // For each observable, we make a couple histograms based on a few generic categorizations.
       // In all cases, the PFCs that go into these histograms must pass the PFC selection from m_cutList.
 
-      std::cout << m_allSuffixes[j] << "\t" << j << "\t" << m_allSuffixes.size() << std::endl;
       // All PFCs
       std::string histName = Form("allPFC_%s%s", observableName.c_str(), m_allSuffixes[j].c_str());
       MonitorElement* mHist = ibooker.book1D(histName, Form(";%s;", axisString.c_str()), nBins, binMin, binMax);
@@ -257,7 +246,6 @@ void PFAnalyzer::bookHistograms(DQMStore::IBooker& ibooker, edm::Run const& iRun
       }
     }    
   }
-  std::cout << "Jenn " << __LINE__ << std::endl;
 }
 
 void PFAnalyzer::bookMESetSelection(std::string DirName, DQMStore::IBooker& ibooker) {
@@ -291,11 +279,11 @@ std::string PFAnalyzer::stringWithDecimals(int bin, std::vector<double> bins){
   // Instead, we use a '_' to indicate the decimal.
   double newDigit =  (bins[bin] -  int(bins[bin]))*pow(10, nDecimals);
   double newDigit2 =  (bins[bin+1] -  int(bins[bin+1]))*pow(10,nDecimals);
-  //std::cout << std::endl;
-  //std::cout << sigFigs <<  "\t" << diff << "\t" << nDecimals << "\t" << newDigit << std::endl;
-  //std::cout << bins[bin] << "\t" << bins[bin+1] << std::endl;
-  //std::cout << Form("%.0f_%.0f__%.0f_%.0f", bins[bin], newDigit, bins[bin+1], newDigit2) << std::endl;
-  return Form("%.0f_%.0f__%.0f_%.0f", bins[bin], newDigit, bins[bin+1], newDigit2);
+  std::string signStringLow = "";
+  std::string signStringHigh = "";
+  if(bins[bin]<0) signStringLow = "m";
+  if(bins[bin+1]<0) signStringHigh = "m";
+  return Form("%s%.0fp%.0f__%s%.0fp%.0f", signStringLow.c_str(), bins[bin], newDigit, signStringHigh.c_str(), bins[bin+1], newDigit2);
   
 
 }

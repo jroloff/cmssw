@@ -414,9 +414,8 @@ namespace edm {
       }
       default: {
         // We should never get here.
-        throw edm::Exception(edm::errors::Configuration) << "Unknown ParameterSet Entry type encoding: '" << type
-                                                         << "'.\n This could be caused by reading a file which was "
-                                                            "written using a newer incompatible software release.";
+        assert("Invalid type code" == nullptr);
+        //throw EntryError(std::string("invalid type code ") + type);
         break;
       }
     }  // switch(type)

@@ -601,6 +601,9 @@ steps['RunTau2023C']={'INPUT':InputInfo(dataSet='/Tau/Run2023C-v1/RAW',label='20
 steps['RunMuonEG2023C']={'INPUT':InputInfo(dataSet='/MuonEG/Run2023C-v1/RAW',label='2023C',events=100000,location='STD', ls=Run2023C)}
 steps['RunParkingDoubleMuonLowMass2023C']={'INPUT':InputInfo(dataSet='/ParkingDoubleMuonLowMass0/Run2023C-v1/RAW',label='2023C',events=100000,location='STD', ls=Run2023C)}
 
+Run2023C_LS500={368489: [[46,546]]}
+steps['TestEnablesEcalHcal2023C']={'INPUT':InputInfo(dataSet='/TestEnablesEcalHcal/Run2023C-Express-v4/RAW',label='2023C',events=100000,location='STD', ls=Run2023C_LS500)}
+
 Run2023D={369978: [[1, 800]]}
 steps['RunMuon2023D']={'INPUT':InputInfo(dataSet='/Muon0/Run2023D-v1/RAW',label='2023D',events=100000,location='STD', ls=Run2023D)}
 steps['RunZeroBias2023D']={'INPUT':InputInfo(dataSet='/ZeroBias/Run2023D-v1/RAW',label='2023D',events=100000,location='STD', ls=Run2023D)}
@@ -2099,9 +2102,6 @@ steps['HLTDR3_HI2023ARawprime']=merge([{'-s':'L1REPACK:Full,HLT:HIon'},
                                        {'--customise' : 'HLTrigger/Configuration/CustomConfigs.customiseL1THLTforHIonRepackedRAWPrime'},
                                        steps['HLTD']])
 
-hltKey2023='relval2023'
-steps['HLTDR3_2023']=merge( [ {'-s':'L1REPACK:Full,HLT:@%s'%hltKey2023,},{'--conditions':'auto:run3_hlt_relval'},{'--era' : 'Run3_2023'},steps['HLTD'] ] )
-steps['HLTDR3_2023B']=merge( [ {'-s':'L1REPACK:Full,HLT:@%s'%hltKey2023,},{'--conditions':'auto:run3_hlt_relval'},{'--era' : 'Run3'},steps['HLTD'] ] )
 # special setting for lumi section boundary crossing in RunEGamma2018Dml
 steps['HLTDR2_2018ml']=merge( [ {'--customise_commands':'"process.source.skipEvents=cms.untracked.uint32(7000)"'},steps['HLTDR2_2018'] ] )
 
@@ -2638,7 +2638,6 @@ steps['RECODR3Splash']=merge([{'-n': 2,
                                '-s': 'RAW2DIGI,L1Reco,RECO,PAT,ALCA:SiStripCalZeroBias+SiStripCalMinBias+TkAlMinBias+EcalESAlign,DQM:@standardDQMFakeHLT+@miniAODDQM'
                               },steps['RECODR3']])
 
-steps['RECOCOSDRUN3']=merge([{'--conditions':'auto:run3_data','--era':'Run3'},steps['RECOCOSD']])
 
 steps['RECOCOSDPROMPTRUN3']=merge([{'--conditions':'auto:run3_data_prompt',
                                     '--era':'Run3',
@@ -3005,34 +3004,6 @@ for s in autoSkim.keys():
         steps['SKIM'+s.upper()+'RUN3_reHLT_2022'] = merge([{'--scenario':'cosmics', '-s':'RAW2DIGI,L1Reco,RECO,SKIM:%s,DQM'%(autoSkim[s]), '--datatier':'RECO,DQMIO', '--eventcontent':'RECO,DQM'},steps['RECONANORUN3_reHLT_2022']])
     else:
         steps['SKIM'+s.upper()+'RUN3_reHLT_2022'] = merge([{'-s':'RAW2DIGI,L1Reco,RECO,SKIM:%s,PAT,NANO,DQM:@standardDQMFakeHLT+@miniAODDQM+@nanoAODDQM'%(autoSkim[s])},steps['RECONANORUN3_reHLT_2022']])
-
-# Run-3 2023 skim
-for s in autoSkim.keys():
-
-    if 'ZeroBias' in s:
-        steps['SKIM'+s.upper()+'RUN3_reHLT_2023'] = merge([{'-s':'RAW2DIGI,L1Reco,RECO,SKIM:%s,PAT,NANO,DQM:@rerecoZeroBias+@miniAODDQM+@nanoAODDQM'%(autoSkim[s])},steps['RECONANORUN3_reHLT_2023']])
-    elif 'Cosmics' in s:
-        steps['SKIM'+s.upper()+'RUN3_reHLT_2023'] = merge([{'--scenario':'cosmics', '-s':'RAW2DIGI,L1Reco,RECO,SKIM:%s,DQM'%(autoSkim[s]), '--datatier':'RECO,DQMIO', '--eventcontent':'RECO,DQM'},steps['RECONANORUN3_reHLT_2023']])
-    else:
-        steps['SKIM'+s.upper()+'RUN3_reHLT_2023'] = merge([{'-s':'RAW2DIGI,L1Reco,RECO,SKIM:%s,PAT,NANO,DQM:@standardDQM+@miniAODDQM+@nanoAODDQM'%(autoSkim[s])},steps['RECONANORUN3_reHLT_2023']])
-
-
-steps['RECONANORUN3_ZB_reHLT']=merge([{'-s':'RAW2DIGI,L1Reco,RECO,PAT,NANO,DQM:@rerecoZeroBiasFakeHLT+@miniAODDQM+@nanoAODDQM','--datatier':'RECO,MINIAOD,NANOAOD,DQMIO','--eventcontent':'RECO,MINIAOD,NANOEDMAOD,DQM'},steps['RECODR3_reHLT']])
-
-steps['RECONANORUN3_reHLT_2023']=merge([{'-s':'RAW2DIGI,L1Reco,RECO,PAT,NANO,DQM:@standardDQM+@miniAODDQM+@nanoAODDQM','--datatier':'RECO,MINIAOD,NANOAOD,DQMIO','--eventcontent':'RECO,MINIAOD,NANOEDMAOD,DQM'},steps['RECODR3_reHLT_2023']])
-steps['RECONANORUN3_reHLT_2023B']=merge([{'-s':'RAW2DIGI,L1Reco,RECO,PAT,NANO,DQM:@standardDQM+@miniAODDQM+@nanoAODDQM','--datatier':'RECO,MINIAOD,NANOAOD,DQMIO','--eventcontent':'RECO,MINIAOD,NANOEDMAOD,DQM'},steps['RECODR3_reHLT_2023B']])
-steps['RECONANORUN3_ZB_reHLT_2023B']=merge([{'-s':'RAW2DIGI,L1Reco,RECO,PAT,NANO,DQM:@rerecoZeroBias+@miniAODDQM+@nanoAODDQM'},steps['RECONANORUN3_reHLT_2023B']])
-steps['RECONANORUN3_ZB_reHLT_2023']=merge([{'-s':'RAW2DIGI,L1Reco,RECO,PAT,NANO,DQM:@rerecoZeroBias+@miniAODDQM+@nanoAODDQM'},steps['RECONANORUN3_reHLT_2023']])
-
-# Run-3 2022 skim
-for s in autoSkim.keys():
-
-    if 'ZeroBias' in s:
-        steps['SKIM'+s.upper()+'RUN3_reHLT_2022'] = merge([{'-s':'RAW2DIGI,L1Reco,RECO,SKIM:%s,PAT,NANO,DQM:@rerecoZeroBiasFakeHLT+@miniAODDQM+@nanoAODDQM'%(autoSkim[s])},steps['RECONANORUN3_reHLT']])
-    elif 'Cosmics' in s:
-        steps['SKIM'+s.upper()+'RUN3_reHLT_2022'] = merge([{'--scenario':'cosmics', '-s':'RAW2DIGI,L1Reco,RECO,SKIM:%s,DQM'%(autoSkim[s]), '--datatier':'RECO,DQMIO', '--eventcontent':'RECO,DQM'},steps['RECONANORUN3_reHLT']])
-    else:
-        steps['SKIM'+s.upper()+'RUN3_reHLT_2022'] = merge([{'-s':'RAW2DIGI,L1Reco,RECO,SKIM:%s,PAT,NANO,DQM:@standardDQMFakeHLT+@miniAODDQM+@nanoAODDQM'%(autoSkim[s])},steps['RECONANORUN3_reHLT']])
 
 # Run-3 2023 skim
 for s in autoSkim.keys():

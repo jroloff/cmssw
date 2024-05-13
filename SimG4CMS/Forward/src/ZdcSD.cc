@@ -65,7 +65,13 @@ ZdcSD::ZdcSD(const std::string& name,
   }
 }
 
-void ZdcSD::initRun() { hits.clear(); }
+void ZdcSD::initRun() {
+  if (useShowerLibrary) {
+    G4ParticleTable* theParticleTable = G4ParticleTable::GetParticleTable();
+    showerLibrary->initRun(theParticleTable);
+  }
+  hits.clear();
+}
 
 bool ZdcSD::ProcessHits(G4Step* aStep, G4TouchableHistory*) {
   if (useShowerLibrary)
@@ -185,6 +191,7 @@ double ZdcSD::getEnergyDeposit(const G4Step* aStep) {
 
   // theTrack information
   G4Track* theTrack = aStep->GetTrack();
+  G4String particleType = theTrack->GetDefinition()->GetParticleName();
   G4ThreeVector localPoint = theTrack->GetTouchable()->GetHistory()->GetTopTransform().TransformPoint(hitPoint);
 
 #ifdef EDM_ML_DEBUG
@@ -207,8 +214,6 @@ double ZdcSD::getEnergyDeposit(const G4Step* aStep) {
   // postStepPoint information
   G4StepPoint* postStepPoint = aStep->GetPostStepPoint();
   G4VPhysicalVolume* postPV = postStepPoint->GetPhysicalVolume();
-  G4VPhysicalVolume* currentPV = preStepPoint->GetPhysicalVolume();
-  std::string nameVolume = ForwardName::getName(currentPV->GetName());
   std::string postnameVolume = ForwardName::getName(postPV->GetName());
   std::string nameVolume = preStepPoint->GetPhysicalVolume()->GetName();
   edm::LogVerbatim("ForwardSim") << "ZdcSD::  getEnergyDeposit: \n"

@@ -9696,16 +9696,6 @@ process.hltSiPixelRecHitsFromLegacyPPOnAASerialSync = cms.EDProducer( "SiPixelRe
     CPE = cms.string( "hltESPPixelCPEFastHIon" ),
     convertToLegacy = cms.bool( True )
 )
-process.hltSiPixelClustersCacheCPUOnly = cms.EDProducer( "SiPixelClusterShapeCacheProducer",
-    src = cms.InputTag( "hltSiPixelClustersLegacy" ),
-    onDemand = cms.bool( False )
-)
-process.hltSiPixelRecHitsFromLegacyCPUOnly = cms.EDProducer( "SiPixelRecHitSoAFromLegacyPhase1",
-    beamSpot = cms.InputTag( "hltOnlineBeamSpot" ),
-    src = cms.InputTag( "hltSiPixelClustersLegacy" ),
-    CPE = cms.string( "hltESPPixelCPEFast" ),
-    convertToLegacy = cms.bool( True )
-)
 process.hltPixelTracksFitter = cms.EDProducer( "PixelFitterByHelixProjectionsProducer",
     scaleErrorsForBPix1 = cms.bool( False ),
     scaleFactor = cms.double( 0.65 )

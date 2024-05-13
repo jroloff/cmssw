@@ -301,8 +301,6 @@ namespace Pythia8 {
         scale = sqrt(2 * pg * pb * pg.e() / pb.e());
       } else {
         scale = 1e30;
-        // and return it
-        return sqrt(min(1 - yq, 1 - ya) * pow2(csi) * q2 / 2);
       }
 
       return scale;

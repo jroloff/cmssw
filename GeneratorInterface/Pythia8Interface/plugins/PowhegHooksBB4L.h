@@ -290,45 +290,21 @@ namespace Pythia8 {
         // Get daughter 4-vectors in resonance frame
         Vec4 pw(event[idw].p());
         pw.bstback(event[iRes].p());
+
         Vec4 pb(event[idb].p());
         pb.bstback(event[iRes].p());
-        Vec4 pg(event[idg].p());
-        pg.bstback(event[iRes].p());
 
-        // Calculate scale and return it
-        return sqrt(2 * pg * pb * pg.e() / pb.e());
-      }
-      // iRes is a W+(-) boson
-      else if (abs(event[iRes].id()) == 24) {
-        // Find W daughters
-        int idq = -1, ida = -1, idg = -1;
-        for (int i = 0; i < nDau; i++) {
-          int iDau = event[iRes].daughterList()[i];
-          if (event[iDau].id() == 21)
-            idg = iDau;
-          else if (event[iDau].id() > 0)
-            idq = iDau;
-          else if (event[iDau].id() < 0)
-            ida = iDau;
-        }
-
-        // Get daughter 4-vectors in resonance frame
-        Vec4 pq(event[idq].p());
-        pq.bstback(event[iRes].p());
-        Vec4 pa(event[ida].p());
-        pa.bstback(event[iRes].p());
         Vec4 pg(event[idg].p());
         pg.bstback(event[iRes].p());
 
         // Calculate scale
-        Vec4 pw = pq + pa + pg;
-        double q2 = pw * pw;
-        double csi = 2 * pg.e() / sqrt(q2);
-        double yq = 1 - pg * pq / (pg.e() * pq.e());
-        double ya = 1 - pg * pa / (pg.e() * pa.e());
+        scale = sqrt(2 * pg * pb * pg.e() / pb.e());
+      } else {
+        scale = 1e30;
         // and return it
         return sqrt(min(1 - yq, 1 - ya) * pow2(csi) * q2 / 2);
       }
+
       return scale;
     }
 

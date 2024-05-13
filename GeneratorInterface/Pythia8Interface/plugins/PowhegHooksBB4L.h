@@ -21,8 +21,9 @@ namespace Pythia8 {
     PowhegHooksBB4L() : nFSRvetoBB4l(0) {}
     ~PowhegHooksBB4L() override { std::cout << "Number of FSR vetoed in BB4l = " << nFSRvetoBB4l << std::endl; }
 
-    //--- Initialization -------------------------------------------------------
+    //--- Initialization -----------------------------------------------------------------------
     bool initAfterBeams() override {
+      // settings of this class
       vetoFSREmission = settingsPtr->flag("POWHEG:bb4l:FSREmission:veto");
       onlyDistance1 = settingsPtr->flag("POWHEG:bb4l:FSREmission:onlyDistance1");
       dryRunFSR = settingsPtr->flag("POWHEG:bb4l:FSREmission:dryRun");
@@ -34,23 +35,25 @@ namespace Pythia8 {
       scaleResonanceVeto = settingsPtr->flag("POWHEG:bb4l:ScaleResonance:veto");
       vetoDipoleFrame = settingsPtr->flag("POWHEG:bb4l:FSREmission:vetoDipoleFrame");
       pTpythiaVeto = settingsPtr->flag("POWHEG:bb4l:FSREmission:pTpythiaVeto");
+      //vetoProduction = (settingsPtr->mode("POWHEG:veto")==1);
       pTmin = settingsPtr->parm("POWHEG:bb4l:pTminVeto");
       return true;
     }
 
     //--- PROCESS LEVEL HOOK ---------------------------------------------------
- 
+
     // called at the LHE level
     inline bool canVetoProcessLevel() override { return true; }
     inline bool doVetoProcessLevel(Event &e) override {
       // extract the radtype from the event comment
       stringstream ss;
       // use eventattribute as comments not filled when using edm input
-      //ss << infoPtr->getEventComments();      
+      //ss << infoPtr->getEventComments();
       ss << infoPtr->getEventAttribute("#rwgt");
       string temp;
       ss >> temp >> radtype_.radtype;
       assert(temp == "#rwgt");
+
       // find last top and the last anti-top in the record
       int i_top = -1, i_atop = -1;
       for (int i = 0; i < e.size(); i++) {
@@ -58,48 +61,88 @@ namespace Pythia8 {
           i_top = i;
         if (e[i].id() == -6)
           i_atop = i;
-        if (e[i].id() == 24)
-          i_wp = i;
-        if (e[i].id() == -24)
-          i_wm = i;
       }
-      // if found calculate the resonance scale
-      topresscale = findresscale(i_top, e);
-      // similarly for anti-top
-      atopresscale = findresscale(i_atop, e);
-      // and for W^+ and W^-
-      wpresscale = findresscale(i_wp, e);
-      wmresscale = findresscale(i_wm, e);
-
+      if (i_top != -1)
+        topresscale = findresscale(i_top, e);
+      else
+        topresscale = 1e30;
+      if (i_top != -1)
+        atopresscale = findresscale(i_atop, e);
+      else
+        atopresscale = 1e30;
+      // initialize stuff
+      doVetoFSRInit();
       // do not veto, ever
       return false;
     }
 
+    //--- PARTON LEVEL HOOK ----------------------------------------------------
+
+    // called after shower
+    bool retryPartonLevel() override { return vetoPartonLevel || vetoAtPL; }
+    inline bool canVetoPartonLevel() override { return vetoPartonLevel || vetoAtPL; }
+    inline bool doVetoPartonLevel(const Event &e) override {
+      if (radtype_.radtype == 2)
+        return false;
+      if (debug) {
+        if (dryRunFSR && wouldVetoFsr) {
+          double scale = getdechardness(vetoTopCharge, e);
+          cout << "FSRdecScale = " << vetoDecScale << ", PLdecScale = " << scale << ", ratio = " << vetoDecScale / scale
+               << endl;
+        }
+      }
+      if (vetoPartonLevel) {
+        double topdecscale = getdechardness(1, e);
+        double atopdecscale = getdechardness(-1, e);
+        if ((topdecscale > topresscale) || (atopdecscale > atopresscale)) {
+          //if(dryRunFSR && ! wouldVetoFsr) mydatacontainer_.excludeEvent = excludeFSRConflicting?1:0;
+          return true;
+        } else
+          //if(dryRunFSR && wouldVetoFsr) mydatacontainer_.excludeEvent = excludeFSRConflicting?1:0;
+          return false;
+      }
+      if (vetoAtPL) {
+        if (dryRunFSR && wouldVetoFsr)
+          return true;
+        else
+          return false;
+      }
+      return false;
+    }
+
     //--- FSR EMISSION LEVEL HOOK ----------------------------------------------
-    // This hook gets triggered everytime the parton shower attempts to attach
-    // a FSR emission.
-    inline bool canVetoFSREmission() { return vetoFSREmission; }
-    inline bool doVetoFSREmission(int sizeOld, const Event &e, int iSys, bool inResonance) {
-      // FSR VETO INSIDE THE RESONANCE (if it is switched on)
+
+    // FSR veto: this should be true if we want PowhegHooksBB4l veto in decay
+    //           OR PowhegHooks veto in production. (The virtual method
+    //           PowhegHooks::canVetoFSREmission has been replaced by
+    //           PowhegHooksBB4L::canVetoFSREmission, so FSR veto in production
+    //           must be handled here. ISR and MPI veto are instead still
+    //           handled by PowhegHooks.)
+    inline bool canVetoFSREmission() override { return vetoFSREmission; }  // || vetoProduction; }
+    inline bool doVetoFSREmission(int sizeOld, const Event &e, int iSys, bool inResonance) override {
+      //////////////////////////////
+      //VETO INSIDE THE RESONANCE //
+      //////////////////////////////
       if (inResonance && vetoFSREmission) {
-        // get the participants of the splitting: the recoiler, the radiator and the emitted
         int iRecAft = e.size() - 1;
         int iEmt = e.size() - 2;
         int iRadAft = e.size() - 3;
         int iRadBef = e[iEmt].mother1();
 
-        // find the resonance the radiator originates from
-        int iRes = e[iRadBef].mother1();
-        while (iRes > 0 && (abs(e[iRes].id()) != 6 && abs(e[iRes].id()) != 24)) {
-          iRes = e[iRes].mother1();
+        // find the top resonance the radiator originates from
+        int iTop = e[iRadBef].mother1();
+        int distance = 1;
+        while (abs(e[iTop].id()) != 6 && iTop > 0) {
+          iTop = e[iTop].mother1();
+          distance++;
         }
-        if (iRes == 0) {
+        if (iTop == 0) {
           infoPtr->errorMsg(
-              "Warning in PowhegHooksBB4L::doVetoFSREmission: emission in resonance not from the top quark or from the "
-              "W boson, not vetoing");
-          return doVetoFSR(false, 0);
+              "Warning in PowhegHooksBB4L::doVetoFSREmission: emission in resonance not from top quark, not vetoing");
+          return doVetoFSR(false, 0, 0);
+          //return false;
         }
-        int iResId = e[iRes].id();
+        int iTopCharge = (e[iTop].id() > 0) ? 1 : -1;
 
         // calculate the scale of the emission
         double scale;
@@ -108,121 +151,132 @@ namespace Pythia8 {
           scale = pTpythia(e, iRadAft, iEmt, iRecAft);
         //.. or using POWHEG pT definition
         else {
-          Vec4 pr(e[iRadAft].p()), pe(e[iEmt].p()), pres(e[iRes].p()), prec(e[iRecAft].p()), psystem;
+          Vec4 pr(e[iRadAft].p()), pe(e[iEmt].p()), pt(e[iTop].p()), prec(e[iRecAft].p()), psystem;
           // The computation of the POWHEG pT can be done in the top rest frame or in the diple one.
           // pdipole = pemt +prec +prad (after the emission)
           // For the first emission off the top resonance pdipole = pw +pb (before the emission) = ptop
           if (vetoDipoleFrame)
             psystem = pr + pe + prec;
           else
-            psystem = pres;
+            psystem = pt;
 
           // gluon splitting into two partons
           if (e[iRadBef].id() == 21)
             scale = gSplittingScale(psystem, pr, pe);
           // quark emitting a gluon (or a photon)
-          else if (abs(e[iRadBef].id()) <= 5 && ((e[iEmt].id() == 21) && !vetoQED))
+          else if (abs(e[iRadBef].id()) == 5 && ((e[iEmt].id() == 21) && !vetoQED))
             scale = qSplittingScale(psystem, pr, pe);
           // other stuff (which we should not veto)
-          else {
+          else
             scale = 0;
-          }
         }
 
-        // compare the current splitting scale to the correct resonance scale
-        if (iResId == 6) {
-          if (debug && scale > topresscale)
-            cout << iResId << ": " << e[iRadBef].id() << " > " << e[iRadAft].id() << " + " << e[iEmt].id() << "; "
-                 << scale << endl;
-          return doVetoFSR(scale > topresscale, scale);
-        } else if (iResId == -6) {
-          if (debug && scale > atopresscale)
-            cout << iResId << ": " << e[iRadBef].id() << " > " << e[iRadAft].id() << " + " << e[iEmt].id() << "; "
-                 << scale << endl;
-          return doVetoFSR(scale > atopresscale, scale);
-        } else if (iResId == 24) {
-          if (debug && scale > wpresscale)
-            cout << iResId << ": " << e[iRadBef].id() << " > " << e[iRadAft].id() << " + " << e[iEmt].id() << "; "
-                 << scale << endl;
-          return doVetoFSR(scale > wpresscale, scale);
-        } else if (iResId == -24) {
-          if (debug && scale > wmresscale)
-            cout << iResId << ": " << e[iRadBef].id() << " > " << e[iRadAft].id() << " + " << e[iEmt].id() << "; "
-                 << scale << endl;
-          return doVetoFSR(scale > wmresscale, scale);
+        if (iTopCharge > 0) {
+          if (onlyDistance1) {
+            if (debug && (distance == 1) && scale > topresscale && !wouldVetoFsr)
+              cout << e[iTop].id() << ": " << e[iRadBef].id() << " > " << e[iRadAft].id() << " + " << e[iEmt].id()
+                   << "; " << scale << endl;
+            return doVetoFSR((distance == 1) && scale > topresscale, scale, iTopCharge);
+          } else {
+            if (debug && scale > topresscale && !wouldVetoFsr)
+              cout << e[iTop].id() << ": " << e[iRadBef].id() << " > " << e[iRadAft].id() << " + " << e[iEmt].id()
+                   << "; " << scale << endl;
+            return doVetoFSR(scale > topresscale, scale, iTopCharge);
+          }
+        } else if (iTopCharge < 0) {
+          if (onlyDistance1) {
+            if (debug && (distance == 1) && scale > atopresscale && !wouldVetoFsr)
+              cout << e[iTop].id() << ": " << e[iRadBef].id() << " > " << e[iRadAft].id() << " + " << e[iEmt].id()
+                   << "; " << scale << endl;
+            return doVetoFSR((distance == 1) && scale > atopresscale, scale, iTopCharge);
+          } else {
+            if (debug && scale > topresscale && !wouldVetoFsr)
+              cout << e[iTop].id() << ": " << e[iRadBef].id() << " > " << e[iRadAft].id() << " + " << e[iEmt].id()
+                   << "; " << scale << endl;
+            return doVetoFSR(scale > atopresscale, scale, iTopCharge);
+          }
         } else {
-          infoPtr->errorMsg("Error in PowhegHooksBB4L::doVetoFSREmission: unimplemented case");
-          exit(-1);
+          cout << "Bug in PohwgeHooksBB4l" << endl;
         }
       }
-      // In CMSSW, the production process veto is done in EmissionVetoHook1.cc
-      // so for events outside resonance, nothing needs to be done here
-      else {
-        return false;
-      }
+      /////////////////////////////////
+      // VETO THE PRODUCTION PROCESS //
+      /////////////////////////////////
+      // covered by multiuserhook, i.e. need to turn on EV1
+      // else if(!inResonance && vetoProduction){
+      // return EmissionVetoHook1::doVetoFSREmission(sizeOld, e, iSys, inResonance);
+      // }
+
+      return false;
     }
 
-    inline bool doVetoFSR(bool condition, double scale) {
-      if (!vetoAllRadtypes && radtype == 2)
+    inline bool doVetoFSR(bool condition, double scale, int iTopCharge) {
+      if (radtype_.radtype == 2)
         return false;
       if (condition) {
-        nInResonanceFSRveto++;
-        return true;
-      }
-      return false;
+        if (!wouldVetoFsr) {
+          wouldVetoFsr = true;
+          vetoDecScale = scale;
+          vetoTopCharge = iTopCharge;
+        }
+        if (dryRunFSR)
+          return false;
+        else {
+          nFSRvetoBB4l++;
+          return true;
+        }
+      } else
+        return false;
+    }
+
+    inline void doVetoFSRInit() {
+      wouldVetoFsr = false;
+      vetoDecScale = -1;
+      vetoTopCharge = 0;
     }
 
     //--- SCALE RESONANCE HOOK -------------------------------------------------
     // called before each resonance decay shower
-    inline bool canSetResonanceScale() { return scaleResonanceVeto; }
-    // if the resonance is the (anti)top or W+/W- set the scale to:
-    // - if radtype=2 (remnant): resonance virtuality
-    // - if radtype=1 (btilde):
-    //  - (a)topresscale/wp(m)resscale for tops and Ws
-    //  - a large number otherwise
+    inline bool canSetResonanceScale() override { return scaleResonanceVeto; }
+    // if the resonance is the (anti)top set the scale to:
+    //  ---> (anti)top virtuality if radtype=2
+    //  ---> (a)topresscale otherwise
     // if is not the top, set it to a big number
-    inline double scaleResonance(int iRes, const Event &e) {
-      if (!vetoAllRadtypes && radtype == 2)
-        return sqrt(e[iRes].m2Calc());
-      else {
-        if (e[iRes].id() == 6)
-          return topresscale;
-        else if (e[iRes].id() == -6)
-          return atopresscale;
-        else if (e[iRes].id() == 24)
-          return wpresscale;
-        else if (e[iRes].id() == 24)
-          return wmresscale;
+    inline double scaleResonance(int iRes, const Event &e) override {
+      if (e[iRes].id() == 6) {
+        if (radtype_.radtype == 2)
+          return sqrt(e[iRes].m2Calc());
         else
-          return 1e30;
-      }
+          return topresscale;
+      } else if (e[iRes].id() == -6) {
+        if (radtype_.radtype == 2)
+          return sqrt(e[iRes].m2Calc());
+        else
+          return atopresscale;
+      } else
+        return pow(10.0, 30.);
     }
 
     //--- Internal helper functions --------------------------------------------
+
     // Calculates the scale of the hardest emission from within the resonance system
     // translated by Markus Seidel modified by Tomas Jezo
     inline double findresscale(const int iRes, const Event &event) {
-      // return large scale if the resonance position is ill defined
-      if (iRes < 0)
-        return 1e30;
+      double scale = 0.;
 
-      // get number of resonance decay products
       int nDau = event[iRes].daughterList().size();
 
-      // iRes is not decayed, return high scale equivalent to
-      // unrestricted shower
       if (nDau == 0) {
-        return 1e30;
-      }
-      // iRes did not radiate, this means that POWHEG pt scale has
-      // evolved all the way down to pTmin
-      else if (nDau < 3) {
-        return pTmin;
-      }
-      // iRes is a (anti-)top quark
-      else if (abs(event[iRes].id()) == 6) {
-        // find top daughters
+        // No resonance found, set scale to high value
+        // Pythia will shower any MC generated resonance unrestricted
+        scale = 1e30;
+      } else if (nDau < 3) {
+        // No radiating resonance found
+        scale = pTmin;
+      } else if (abs(event[iRes].id()) == 6) {
+        // Find top daughters
         int idw = -1, idb = -1, idg = -1;
+
         for (int i = 0; i < nDau; i++) {
           int iDau = event[iRes].daughterList()[i];
           if (abs(event[iDau].id()) == 24)
@@ -275,9 +329,7 @@ namespace Pythia8 {
         // and return it
         return sqrt(min(1 - yq, 1 - ya) * pow2(csi) * q2 / 2);
       }
-      // in any other case just return a high scale equivalent to
-      // unrestricted shower
-      return 1e30;
+      return scale;
     }
 
     // The following routine will match daughters of particle `e[iparticle]` to an expected pattern specified via the list of expected particle PDG ID's `ids`,
@@ -447,6 +499,7 @@ namespace Pythia8 {
     // Functions to return information
 
     //  inline int    getNFSRveto() { return nFSRveto; }
+
     //--------------------------------------------------------------------------
 
   private:

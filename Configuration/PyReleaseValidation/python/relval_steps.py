@@ -2633,11 +2633,11 @@ steps['RECODR3_reHLT_2023B']=merge([{'--conditions':'auto:run3_data_prompt_relva
 steps['RECODR3_2023_HIN']=merge([{'--conditions':'auto:run3_data_prompt', '-s':'RAW2DIGI,L1Reco,RECO,DQM:@commonFakeHLT+@standardDQMFakeHLT', '--repacked':'', '-n':1000},steps['RECODR3_2023']])
 steps['RECODR3_2023_UPC']=merge([{'--era':'Run3_2023_UPC', '--conditions':'132X_dataRun3_Prompt_HI_LowPtPhotonReg_v2'},steps['RECODR3_2023_HIN']])
 
-steps['RECODR3_reHLT']=merge([{'--conditions':'auto:run3_data_prompt_relval', '--hltProcess':'reHLT'},steps['RECODR3']])
 steps['RECODR3Splash']=merge([{'-n': 2,
                                '-s': 'RAW2DIGI,L1Reco,RECO,PAT,ALCA:SiStripCalZeroBias+SiStripCalMinBias+TkAlMinBias+EcalESAlign,DQM:@standardDQMFakeHLT+@miniAODDQM'
                               },steps['RECODR3']])
 
+steps['RECOCOSDRUN3']=merge([{'--conditions':'auto:run3_data','--era':'Run3'},steps['RECOCOSD']])
 
 steps['RECOCOSDPROMPTRUN3']=merge([{'--conditions':'auto:run3_data_prompt',
                                     '--era':'Run3',

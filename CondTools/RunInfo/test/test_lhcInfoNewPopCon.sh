@@ -71,4 +71,3 @@ cmsRun ${SCRIPTS_DIR}/LHCInfoPerLSPopConAnalyzer.py mode=duringFill \
 assert_equal 1 `cat ls_during_test.log | grep -E '^Since ' | \
     wc -l` "LHCInfoPerLSPopConAnalyzer in duringFill mode written wrong number of payloads"
 assert_found_fills ls_during_test.log  "LHCInfoPerLSPopConAnalyzer in duringFill mode" 8307 8309
-

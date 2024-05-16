@@ -48,18 +48,7 @@ process.DQMoutput_step = cms.EndPath(process.DQMoutput)
 process.schedule = cms.Schedule(
     process.p,
     process.DQMoutput_step
-    #process.dqmsave_step
     )
-
-#process.dump = cms.EDAnalyzer("EventContentAnalyzer")
-
-
-#process.p = cms.Path(                    #process.dump*
-#                     process.PFAnalyzer*
-#                     process.dqmSaver
-#                     )
-
-
 
 
 

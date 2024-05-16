@@ -17,6 +17,8 @@ PFAnalyzer = DQMEDAnalyzer("PFAnalyzer",
       # in order, are the number of bins, the lowest, and the highest values.
       # If any other number is given, this is just a list of bins for the histogram.
       observables     = cms.vstring('pt;p_{T,PFC};50.;0.;300.', 
+                                    'eta;#eta;50;-5;5', 
+                                    'phi;#phi;50;-3.14;3.14', 
                                     'hcalE;E_{hcal};50;0;300', 
                                    ),
 
@@ -26,8 +28,8 @@ PFAnalyzer = DQMEDAnalyzer("PFAnalyzer",
       # The first is the observable name, corresponding to a key in m_funcMap 
       # in PFAnalysis. The last values are the bins, following the same
       # conventions as the observables.
-      cutList     = cms.vstring('eta;2;0;5',
-                                'phi;2;-3;3'
+      cutList     = cms.vstring(
+                                'pt;0;1;5;10;10000'
                                ),
 
       # This is a list of multidimensional cuts on the jets that are applied for the plots.
@@ -35,7 +37,7 @@ PFAnalyzer = DQMEDAnalyzer("PFAnalyzer",
       # The first is the observable name, corresponding to a key in m_jetFuncMap 
       # in PFAnalysis. The last values are the bins, following the same
       # conventions as the observables.
-      jetCutList     = cms.vstring('pt;150;10000'),
+      jetCutList     = cms.vstring('pt;20;150;10000'),
     )
 
 

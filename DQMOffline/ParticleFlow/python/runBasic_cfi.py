@@ -13,7 +13,7 @@ PFAnalyzer = DQMEDAnalyzer("PFAnalyzer",
 
     pfAnalysis = cms.PSet(
       # Bins of NPV for plots
-      NPVBins = cms.vdouble(0, 25, 45, 100),
+      NPVBins = cms.vdouble(0, 15, 25, 35, 45, 55, 65, 100),
 
       # A list of observables for which plots should be made.
       # The format should be a list of semicolon-separated values.
@@ -52,6 +52,17 @@ PFAnalyzer = DQMEDAnalyzer("PFAnalyzer",
                                         ),
 
 
+      
+      # This is a list of multidimensional cuts that are applied for the plots.
+      # In the case of multiple bins, every combination of bin is tested.
+      # The format should be a list of semicolon-separated values.
+      # The first is the observable name, corresponding to a key in m_funcMap 
+      # in PFAnalysis. The last values are the bins, following the same
+      # conventions as the observables.
+      binList2D     = cms.vstring(
+                                '[eta;30;-5;5][phi;30;-3.14;3.14]',
+                               ),
+
       # This is a list of multidimensional cuts that are applied for the plots.
       # In the case of multiple bins, every combination of bin is tested.
       # The format should be a list of semicolon-separated values.
@@ -70,8 +81,8 @@ PFAnalyzer = DQMEDAnalyzer("PFAnalyzer",
      
       cutList     = cms.vstring(
                                 '[pt;1;0;10000]',
-                                '[pt;0;1;2;4;10;50;10000]',
-                                '[pt;1;0;10000][eta;-5;-4;-3;-2.5;-2;-1;0;1;2;2.5;3;4;5]',
+                                '[pt;0;1;2;4;6;10;20;40;60;100][abseta;0;1.5;2.0;2.5;2.8;2.85;2.9;2.95;3]',
+                                '[pt;1;0;10000][abseta;0;1;2;2.5;2.6;2.7;2.8;2.9;3;3.5;4.0;4;5]',
                                ),
 
       # This is a list of multidimensional cuts on the jets that are applied for the plots.
@@ -82,8 +93,7 @@ PFAnalyzer = DQMEDAnalyzer("PFAnalyzer",
       #
       # Just like for cutList, multiple sets of cuts can be applied, using the same formulation.
       jetCutList     = cms.vstring(
-                                   '[pt;20;50;100;450;10000]',
-                                   '[pt;20;10000]'
+                                   '[pt;20;30;50;100;200;450;1000]',
                                   ),
     )
 

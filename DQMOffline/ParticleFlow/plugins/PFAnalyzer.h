@@ -320,6 +320,13 @@ private:
   std::vector<std::vector<std::string>> m_fullCutList;
   std::vector<std::vector<std::vector<double>>> m_binList;
 
+  // Binning information for 2D histograms
+  // Technically, these could be made using just the 1D cuts, 
+  // but this is useful for saving a bit of memory by creating fewer histograms.
+  vstring m_cutList2D;
+  std::vector<std::vector<std::string>> m_fullCutList2D;
+  std::vector<std::vector<std::vector<double>>> m_binList2D;
+
   // Information on what cuts should be applied to PFJets, in the case that we
   // match PFCs to jets.In the config file, this should come as a comma-separated list of
   // the observable name, and the lowest and highest values for the histogram.

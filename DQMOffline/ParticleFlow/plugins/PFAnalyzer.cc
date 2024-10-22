@@ -7,6 +7,7 @@
  */
 
 #include "DQMOffline/ParticleFlow/plugins/PFAnalyzer.h"
+#include <iostream>
 
 // ***********************************************************
 PFAnalyzer::PFAnalyzer(const edm::ParameterSet& pSet) {
@@ -36,6 +37,7 @@ PFAnalyzer::PFAnalyzer(const edm::ParameterSet& pSet) {
 
   // List of cuts applied to PFCs that we want to plot
   m_cutList = parameters_.getParameter<vstring>("cutList");
+  m_cutList2D = parameters_.getParameter<vstring>("binList2D");
   // List of jet cuts that we apply for the case of plotting PFCs in jets
   m_jetCutList = parameters_.getParameter<vstring>("jetCutList");
 
@@ -45,6 +47,7 @@ PFAnalyzer::PFAnalyzer(const edm::ParameterSet& pSet) {
   m_funcMap["pt"] = &getPt;
   m_funcMap["energy"] = getEnergy;
   m_funcMap["eta"] = getEta;
+  m_funcMap["abseta"] = getAbsEta;
   m_funcMap["phi"] = getPhi;
 
   m_funcMap["HCalE_depth1"] = getHcalEnergy_depth1;
@@ -105,6 +108,9 @@ PFAnalyzer::PFAnalyzer(const edm::ParameterSet& pSet) {
     }
   }
 
+
+
+
   for (unsigned int i = 0; i < m_fullCutList.size(); i++) {
     m_binList.push_back(std::vector<std::vector<double>>());
     for (unsigned int j = 0; j < m_fullCutList[i].size(); j++) {
@@ -114,6 +120,29 @@ PFAnalyzer::PFAnalyzer(const edm::ParameterSet& pSet) {
 
       m_binList[i].push_back(getBinList(m_fullCutList[i][j]));
       m_fullCutList[i][j] = observableName;
+    }
+  }
+
+
+  for (unsigned int i = 0; i < m_cutList2D.size(); i++) {
+    m_fullCutList2D.push_back(std::vector<std::string>());
+    while (m_cutList2D[i].find("]") != std::string::npos) {
+      size_t pos = m_cutList2D[i].find("]");
+      m_fullCutList2D[i].push_back(m_cutList2D[i].substr(1, pos));
+      m_cutList2D[i].erase(0, pos + 1);
+    }
+  }
+
+
+  for (unsigned int i = 0; i < m_fullCutList2D.size(); i++) {
+    m_binList2D.push_back(std::vector<std::vector<double>>());
+    for (unsigned int j = 0; j < m_fullCutList2D[i].size(); j++) {
+      size_t pos = m_fullCutList2D[i][j].find(";");
+      std::string observableName = m_fullCutList2D[i][j].substr(0, pos);
+      m_fullCutList2D[i][j].erase(0, pos + 1);
+
+      m_binList2D[i].push_back(getBinList(m_fullCutList2D[i][j]));
+      m_fullCutList2D[i][j] = observableName;
     }
   }
 
@@ -158,6 +187,26 @@ void PFAnalyzer::bookHistograms(DQMStore::IBooker& ibooker, edm::Run const& iRun
 
   for (unsigned int i = 0; i < m_fullJetCutList.size(); i++) {
     m_allJetSuffixes.push_back(getAllSuffixes(m_fullJetCutList[i], m_jetBinList[i]));
+  }
+
+  // Books a 2D histogram for each histogram in the config file.
+  // The format for the observables should be four comma separated values,
+  // with the first being the observable name (corresponding to one of
+  // the keys in m_funcMap), the second being the number of bins,
+  // and the last two being the min and max value for the histogram respectively.
+
+  for(unsigned int i=0; i<m_fullCutList2D.size(); i++){
+    // Loop over all of the different types of PF candidates
+    for (unsigned int m = 0; m < m_pfNames.size(); m++) {
+      // For each observable, we make a couple histograms based on a few generic categorizations.
+      // In all cases, the PFCs that go into these histograms must pass the PFC selection from m_cutList.
+      std::string histName = Form("%s_%s_%s",
+                                  m_pfNames[m].c_str(), m_fullCutList2D[i][0].c_str(), m_fullCutList2D[i][1].c_str());
+      //std::cout <<  "test " << m_fullCutList2D[i].size() << "\t" << m_binList2D[i][0].size() << "\t" << m_binList2D[i][0][0] << "\t" << m_binList2D[i][0][m_binList2D[i].size()-1] << std::endl;
+      MonitorElement* mHist = ibooker.book2D(
+          histName, Form(";%s;%s", m_fullCutList2D[i][0].c_str(), m_fullCutList2D[i][1].c_str()), m_binList2D[i][0].size(), m_binList2D[i][0][0], m_binList2D[i][0][m_binList2D[i][0].size()-1], m_binList2D[i][1].size(), m_binList2D[i][1][0], m_binList2D[i][1][m_binList2D[i][0].size()-1]);
+      map_of_MEs.insert(std::pair<std::string, MonitorElement*>(m_directory + "/" + histName, mHist));
+    }
   }
 
   for (unsigned int npv = 0; npv < m_npvBins.size() - 1; npv++) {
@@ -379,25 +428,30 @@ std::string PFAnalyzer::stringWithDecimals(int bin, std::vector<double> bins) {
   int nDecimals = int(-1 * sigFigs) + 1;
   // We do not want to use decimals since these can mess up histogram retrieval in some cases.
   // Instead, we use a 'p' to indicate the decimal.
-  double newDigit = abs((bins[bin] - int(bins[bin])) * pow(10, nDecimals));
-  double newDigit2 = (bins[bin + 1] - int(bins[bin + 1])) * pow(10, nDecimals);
+  double newDigit = std::abs((bins[bin] - int(bins[bin])) * pow(10, nDecimals));
+  double newDigit2 = std::abs((bins[bin + 1] - int(bins[bin + 1])) * pow(10, nDecimals));
   std::string signStringLow = "";
   std::string signStringHigh = "";
   if (bins[bin] < 0)
     signStringLow = "m";
   if (bins[bin + 1] < 0)
     signStringHigh = "m";
-  return Form("%s%.0fp%.0f_%s%.0fp%.0f",
+
+  int higherDigitsLow = (bins[bin]>0)?floor(bins[bin]):ceil(bins[bin]);
+  int higherDigitsHigh = (bins[bin+1]>0)?floor(bins[bin+1]):ceil(bins[bin+1]);
+
+  return Form("%s%dp%.0f_%s%dp%.0f",
               signStringLow.c_str(),
-              abs(bins[bin]),
+              std::abs(higherDigitsLow),
               newDigit,
               signStringHigh.c_str(),
-              abs(bins[bin + 1]),
+              std::abs(higherDigitsHigh),
               newDigit2);
 }
 
 std::vector<double> PFAnalyzer::getBinList(std::string binString) {
   std::vector<double> binList;
+  //std::cout << binString << "\t" ;
 
   while (binString.find(";") != std::string::npos) {
     size_t pos = binString.find(";");
@@ -410,15 +464,19 @@ std::vector<double> PFAnalyzer::getBinList(std::string binString) {
     int nBins = int(binList[0]);
     double minVal = binList[1];
     double maxVal = binList[2];
+    //std::cout << minVal << "\t" << maxVal << "\t" << nBins << std::endl;
     binList.clear();
 
     for (int i = 0; i <= nBins; i++) {
+      //std::cout << minVal + i * (maxVal - minVal) / nBins << std::endl;
       binList.push_back(minVal + i * (maxVal - minVal) / nBins);
     }
   }
 
+  //std::cout <<binList.size() << std::endl;
   return binList;
 }
+
 
 std::vector<std::string> PFAnalyzer::getAllSuffixes(std::vector<std::string> observables,
                                                     std::vector<std::vector<double>> binnings) {
@@ -440,10 +498,11 @@ std::vector<std::string> PFAnalyzer::getAllSuffixes(std::vector<std::string> obs
   for (unsigned int i = 0; i < binnings.size(); i++) {
     factor = factor / nBins[i];
 
-    for (int j = 0; j < nBins[i]; j++) {
-      for (int k = 0; k < factor; k++) {
+    for (int k = 0; k < factor; k++) {
+      for (int j = 0; j < nBins[i]; j++) {
         for (int m = 0; m < otherFactor; m++) {
-          binList[m * otherFactor + j * factor + k].push_back(j);
+          int binNumber = k*nBins[i] + j * otherFactor + m;
+          binList[binNumber].push_back(j);
         }
       }
     }
@@ -619,6 +678,45 @@ void PFAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         continue;
       }
       std::string binString = m_allSuffixes[j][binNumber];
+
+      for(unsigned int i=0; i<m_fullCutList2D.size(); i++){
+        // For each observable, we make a couple histograms based on a few generic categorizations.
+        // In all cases, the PFCs that go into these histograms must pass the PFC selection from m_cutList.
+        std::string histName = Form("%s_%s", m_fullCutList2D[i][0].c_str(), m_fullCutList2D[i][1].c_str());
+        map_of_MEs[m_directory + "/allPFC_" + histName]->Fill(m_funcMap[m_fullCutList2D[i][0]](*recoPF), m_funcMap[m_fullCutList2D[i][1]](*recoPF), eventWeight);
+        switch (recoPF->particleId()) {
+          case reco::PFCandidate::ParticleType::h:
+            map_of_MEs[m_directory + "/chargedHadPFC_" + histName]->Fill(m_funcMap[m_fullCutList2D[i][0]](*recoPF), m_funcMap[m_fullCutList2D[i][1]](*recoPF),
+                                                                         eventWeight);
+            break;
+          case reco::PFCandidate::ParticleType::h0:
+            map_of_MEs[m_directory + "/neutralHadPFC_" + histName]->Fill(m_funcMap[m_fullCutList2D[i][0]](*recoPF), m_funcMap[m_fullCutList2D[i][1]](*recoPF),
+                                                                         eventWeight);
+            break;
+          case reco::PFCandidate::ParticleType::e:
+            map_of_MEs[m_directory + "/electronPFC_" + histName]->Fill(m_funcMap[m_fullCutList2D[i][0]](*recoPF), m_funcMap[m_fullCutList2D[i][1]](*recoPF),
+                                                                       eventWeight);
+            break;
+          case reco::PFCandidate::ParticleType::mu:
+            map_of_MEs[m_directory + "/muonPFC_" + histName]->Fill(m_funcMap[m_fullCutList2D[i][0]](*recoPF), m_funcMap[m_fullCutList2D[i][1]](*recoPF),
+                                                                   eventWeight);
+            break;
+          case reco::PFCandidate::ParticleType::gamma:
+            map_of_MEs[m_directory + "/gammaPFC_" + histName]->Fill(m_funcMap[m_fullCutList2D[i][0]](*recoPF), m_funcMap[m_fullCutList2D[i][1]](*recoPF),
+                                                                    eventWeight);
+            break;
+          case reco::PFCandidate::ParticleType::h_HF:
+            map_of_MEs[m_directory + "/hadHFPFC_" + histName]->Fill(m_funcMap[m_fullCutList2D[i][0]](*recoPF), m_funcMap[m_fullCutList2D[i][1]](*recoPF),
+                                                                    eventWeight);
+            break;
+          case reco::PFCandidate::ParticleType::egamma_HF:
+            map_of_MEs[m_directory + "/emHFPFC_" + histName]->Fill(m_funcMap[m_fullCutList2D[i][0]](*recoPF), m_funcMap[m_fullCutList2D[i][1]](*recoPF),
+                                                                   eventWeight);
+            break;
+          default:
+            break;
+        }
+      }
 
       // Eventually, we might want the hist name to include the cuts that we are applying,
       // so I am keepking it as a separate string for now, even though it is redundant.

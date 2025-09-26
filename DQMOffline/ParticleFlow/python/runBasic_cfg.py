@@ -1,5 +1,10 @@
 import FWCore.ParameterSet.Config as cms
 
+# jet calibration stuff
+from JetMETCorrections.Configuration.JetCorrectors_cff import ak4PFPuppiL1FastL2L3ResidualCorrectorChain,ak4PFPuppiL1FastL2L3ResidualCorrector,ak4PFPuppiL1FastL2L3Corrector,ak4PFPuppiResidualCorrector,ak4PFPuppiL3AbsoluteCorrector,ak4PFPuppiL2RelativeCorrector,ak4PFPuppiL1FastjetCorrector
+
+dqmAk4PFPuppiL1FastL2L3ResidualCorrector = ak4PFPuppiL1FastL2L3ResidualCorrector.clone()
+
 process = cms.Process('ParticleFlowDQMOffline')
 
 # import of standard configurations
@@ -19,7 +24,10 @@ process.load("DQMServices.Components.DQMEnvironment_cfi")
 process.load('DQMOffline.ParticleFlow.runBasic_cfi')
 
 
-with open('fileList.log') as f:
+from DQMOffline.ParticleFlow.runBasic_cfi import *
+
+# back to original script
+with open('fileList_2.log') as f:
     lines = f.readlines()
 #Input source
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(lines))
@@ -34,6 +42,9 @@ process.DQMoutput = cms.OutputModule("DQMRootOutputModule",
 process.p = cms.Path(process.PFAnalyzer)
 process.DQMoutput_step = cms.EndPath(process.DQMoutput)
 
+dqmAk4PFPuppiL1FastL2L3ResidualCorrectorChain = cms.Sequence(
+    dqmAk4PFPuppiL1FastL2L3ResidualCorrector*PFAnalyzer
+)
 
 ## Schedule definition
 process.schedule = cms.Schedule(

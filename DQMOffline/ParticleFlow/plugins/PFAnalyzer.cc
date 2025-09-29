@@ -19,7 +19,7 @@ PFAnalyzer::PFAnalyzer(const edm::ParameterSet& pSet) {
   pfJetsToken_ = consumes<reco::PFJetCollection>(pSet.getParameter<edm::InputTag>("pfJetCollection"));
   // Jets calibration
   jetCorrectorTag_ = pSet.getParameter<edm::InputTag>("JetCorrections");
-
+  jetCorrectorToken_ = consumes<reco::JetCorrector>(jetCorrectorTag_);
 
   theTriggerResultsLabel_ = pSet.getParameter<edm::InputTag>("TriggerResultsLabel");
   m_selection = pSet.getParameter<std::string>("eventSelection");
@@ -619,9 +619,7 @@ void PFAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   double eventWeight = 1;
   if (genEventInfo.isValid()) {
     eventWeight = genEventInfo->weight();
-
-  //weights_ = &iEvent.get(weightsToken_);
-
+  }
 
   //Vertex information
   edm::Handle<reco::VertexCollection> vertexHandle;
@@ -645,11 +643,9 @@ void PFAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     }
   }
 
-  std::cout << __LINE__ << std::endl;
   int npvBin = getBinNumber(numPV, m_npvBins);
   if (npvBin < 0)
     return;
-  std::cout << __LINE__ << std::endl;
   std::string npvString = Form("npv_%.0f_%.0f", m_npvBins[npvBin], m_npvBins[npvBin + 1]);
 
     // **** Get the TriggerResults container
@@ -661,15 +657,12 @@ void PFAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   }
   const edm::TriggerNames& triggerNames = iEvent.triggerNames(*triggerResults);
 
-
-  std::cout << __LINE__ << std::endl;
   edm::Handle<reco::PFCandidateCollection> pfCollection;
   iEvent.getByToken(thePfCandidateCollection_, pfCollection);
   if (!pfCollection.isValid()) {
     edm::LogError("PFAnalyzer") << "invalid collection: PF candidate \n";
     return;
   }
-  std::cout << __LINE__ << std::endl;
 
   edm::Handle<reco::PFJetCollection> pfJets;
   iEvent.getByToken(pfJetsToken_, pfJets);
@@ -677,20 +670,24 @@ void PFAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     edm::LogError("PFAnalyzer") << "invalid collection: PF jets \n";
     return;
   }
+  std::cout << "NPF: " << pfJets->size() << std::endl;
 
-  std::cout << __LINE__ << std::endl;
+  /*
   if(!passesTriggerSelection(pfJets, triggerResults, triggerNames, m_triggerOptions)){
     return;
   }
-  std::cout << __LINE__ << std::endl;
 
   if(!m_eventSelectionMap[m_selection](pfJets)){
     return;
   }
-  std::cout << __LINE__ << std::endl;
+  */
 
   //Jet calibration stuff
   edm::Handle<reco::JetCorrector> jetCorr;
+  iEvent.getByToken(jetCorrectorToken_, jetCorr);
+  if (!jetCorr.isValid()) {
+    edm::LogError("JetAnalyzer") << "Jet corrector service not found!";
+  }
 
   for (reco::PFCandidateCollection::const_iterator recoPF = pfCollection->begin(); recoPF != pfCollection->end();
        ++recoPF) {
@@ -752,7 +749,7 @@ void PFAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     map_of_MEs[m_directory + Form("/jetEta_%s", npvString.c_str())]->Fill(cjet->eta(), eventWeight);
 
     double scale = jetCorr->correction(*cjet);
-    std::cout << scale << std::endl;
+    std::cout << "Jet calibration: " << scale << std::endl;
 
     for (unsigned int k = 0; k < m_fullJetCutList.size(); k++) {
       int jetBinNumber = getJetBin(*cjet, k);
@@ -816,6 +813,5 @@ void PFAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         }
       }
     }
-  }
   }
 }

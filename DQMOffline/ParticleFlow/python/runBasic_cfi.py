@@ -1,16 +1,20 @@
 import FWCore.ParameterSet.Config as cms
 from DQMServices.Core.DQMEDAnalyzer import DQMEDAnalyzer
 
+from JetMETCorrections.Configuration.JetCorrectors_cff import ak4PFPuppiL1FastL2L3ResidualCorrectorChain,ak4PFPuppiL1FastL2L3ResidualCorrector,ak4PFPuppiL1FastL2L3Corrector,ak4PFPuppiResidualCorrector,ak4PFPuppiL3AbsoluteCorrector,ak4PFPuppiL2RelativeCorrector,ak4PFPuppiL1FastjetCorrector
+
+
 PFAnalyzer = DQMEDAnalyzer("PFAnalyzer",
     pfJetCollection        = cms.InputTag("ak4PFJetsCHS"),
     pfCandidates             = cms.InputTag("particleFlow"),
     PVCollection             = cms.InputTag("offlinePrimaryVertices"),
-    JetCorrections = cms.InputTag("dqmAk4PFPuppiL1FastL2L3ResidualCorrector"),
+    JetCorrections = cms.InputTag("ak4PFPuppiL1FastL2L3ResidualCorrector"),
 
-    eventSelection = cms.string("none"),
-    TriggerNames = cms.vstring("HLT_PFJet450"),
+    eventSelection = cms.string("nocut"),
+    #TriggerNames = cms.vstring("HLT_PFJet450"),
+    TriggerNames = cms.vstring(""),
     TriggerResultsLabel        = cms.InputTag("TriggerResults::HLT"),
-    TriggerName = cms.InputTag(""),
+    #TriggerName = cms.InputTag(""),
     srcWeights = cms.InputTag("puppi"),
 
 

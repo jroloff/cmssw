@@ -614,7 +614,6 @@ int PFAnalyzer::getJetBin(const reco::PFJet jetCand, int i) {
 
 // ***********************************************************
 void PFAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
-  std::cout << __LINE__ << std::endl;
   const edm::Handle<GenEventInfoProduct> genEventInfo = iEvent.getHandle(tok_ew_);
   double eventWeight = 1;
   if (genEventInfo.isValid()) {
@@ -670,9 +669,7 @@ void PFAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     edm::LogError("PFAnalyzer") << "invalid collection: PF jets \n";
     return;
   }
-  std::cout << "NPF: " << pfJets->size() << std::endl;
 
-  /*
   if(!passesTriggerSelection(pfJets, triggerResults, triggerNames, m_triggerOptions)){
     return;
   }
@@ -680,7 +677,6 @@ void PFAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   if(!m_eventSelectionMap[m_selection](pfJets)){
     return;
   }
-  */
 
   //Jet calibration stuff
   edm::Handle<reco::JetCorrector> jetCorr;
@@ -742,14 +738,15 @@ void PFAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   map_of_MEs[m_directory + Form("/jetPtLead_%s", npvString.c_str())]->Fill(pfJets->begin()->pt(), eventWeight);
   map_of_MEs[m_directory + Form("/jetEtaLead_%s", npvString.c_str())]->Fill(pfJets->begin()->eta(), eventWeight);
 
-  std::cout << "Passed event selection" << std::endl;
   // Make plots of all observables, this time for PF candidates within jets
   for (reco::PFJetCollection::const_iterator cjet = pfJets->begin(); cjet != pfJets->end(); ++cjet) {
     map_of_MEs[m_directory + Form("/jetPt_%s", npvString.c_str())]->Fill(cjet->pt(), eventWeight);
     map_of_MEs[m_directory + Form("/jetEta_%s", npvString.c_str())]->Fill(cjet->eta(), eventWeight);
 
+    reco::Jet correctedJet = *cjet;
     double scale = jetCorr->correction(*cjet);
-    std::cout << "Jet calibration: " << scale << std::endl;
+    correctedJet.scaleEnergy(scale);
+    std::cout << "Jet calibration: " << scale << "\t original jet pt: " << cjet->pt() <<  "\t calibrated jet pt: " << correctedJet.pt() << std::endl;
 
     for (unsigned int k = 0; k < m_fullJetCutList.size(); k++) {
       int jetBinNumber = getJetBin(*cjet, k);

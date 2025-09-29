@@ -1,27 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 
-# jet calibration stuff
-from JetMETCorrections.Configuration.JetCorrectors_cff import ak4PFPuppiL1FastL2L3ResidualCorrectorChain,ak4PFPuppiL1FastL2L3ResidualCorrector,ak4PFPuppiL1FastL2L3Corrector,ak4PFPuppiResidualCorrector,ak4PFPuppiL3AbsoluteCorrector,ak4PFPuppiL2RelativeCorrector,ak4PFPuppiL1FastjetCorrector
-
-dqmAk4PFPuppiL1FastL2L3ResidualCorrector = ak4PFPuppiL1FastL2L3ResidualCorrector.clone()
-
 process = cms.Process('ParticleFlowDQMOffline')
 
-
-process.load("CondCore.DBCommon.CondDBSetup_cfi")
-process.load("Configuration.StandardSequences.MagneticField_cff")
-process.load("DQMServices.Core.DQM_cfg")
-process.load("DQMServices.Components.MEtoEDMConverter_cfi")
-
-# import of standard configurations
-process.load('Configuration.StandardSequences.Services_cff')
-process.load('FWCore.MessageService.MessageLogger_cfi')
-process.load('Configuration.EventContent.EventContent_cff')
-process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
-process.load('Configuration.StandardSequences.MagneticField_AutoFromDBCurrent_cff')
-process.load('Configuration.StandardSequences.EDMtoMEAtRunEnd_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
-
 process.GlobalTag.globaltag = '76X_mcRun2_asymptotic_v4'
 
 # load DQM
@@ -29,40 +10,21 @@ process.load("DQMServices.Core.DQM_cfg")
 process.load("DQMServices.Components.DQMEnvironment_cfi")
 
 # my analyzer
-
-#process.load("JetMETCorrections.Configuration.JetCorrectors_cff")
-process.load('DQMOffline.ParticleFlow.runBasic_cff')
 process.load('DQMOffline.ParticleFlow.runBasic_cfi')
-
-from DQMOffline.ParticleFlow.runBasic_cfi import PFAnalyzer
 
 # back to original script
 with open('fileList_2.log') as f:
     lines = f.readlines()
+
 #Input source
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(lines))
-
-dqmAk4PFPuppiL1FastL2L3ResidualCorrectorChain = cms.Sequence(
-    dqmAk4PFPuppiL1FastL2L3ResidualCorrector
-)
-
-from DQMOffline.ParticleFlow.runBasic_cfi import *
-
 
 process.DQMoutput = cms.OutputModule("DQMRootOutputModule",
                                      fileName = cms.untracked.string("OUT_step1.root"))
 
 
-#process.p = cms.Path(process.jetMETDQMOfflineSource*process.PFAnalyzer)
-#process.p = cms.Path(process.ak4PFPuppiResidualCorrector*process.jetMETDQMOfflineSource)
-#process.p = cms.Path(process.ak4CaloResidualCorrector*process.jetMETDQMOfflineSource)
-process.p = cms.Path(process.ak4PFPuppiL1FastL2L3ResidualCorrectorChain*process.jetMETDQMOfflineSource*process.PFAnalyzer)
-#process.p = cms.Path(process.jetMETDQMOfflineSource*process.PFAnalyzer)
-#process.p = cms.Path(process.ak4PFPuppiL1L2L3CorrectorChain)
+process.p = cms.Path(process.ak4PFPuppiL1FastL2L3ResidualCorrectorChain*process.PFAnalyzer)
 process.DQMoutput_step = cms.EndPath(process.DQMoutput)
-#process.DQMoutput_step = cms.EndPath(process.jetMETDQMOfflineSource*process.PFAnalyzer)
-
-
 
 ## Schedule definition
 process.schedule = cms.Schedule(

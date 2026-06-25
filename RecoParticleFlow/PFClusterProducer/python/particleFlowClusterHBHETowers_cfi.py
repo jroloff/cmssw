@@ -8,8 +8,12 @@ particleFlowClusterHBHETowers1To26 = particleFlowClusterHBHE.clone(
 )
 
 
-particleFlowClusterHBHETowers27To29 = particleFlowClusterHBHE.clone(
-    recHitsSource = cms.InputTag("particleFlowRecHitHBHEAbsIEta27To29")
+particleFlowClusterHBHETowers27To27 = particleFlowClusterHBHE.clone(
+    recHitsSource = cms.InputTag("particleFlowRecHitHBHEAbsIEta27To27")
+)
+
+particleFlowClusterHBHETowers28To29 = particleFlowClusterHBHE.clone(
+    recHitsSource = cms.InputTag("particleFlowRecHitHBHEAbsIEta28To29")
 )
 
 

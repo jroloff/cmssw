@@ -55,12 +55,15 @@ particleFlowLinks = cms.Sequence(particleFlowLinksTask)
 # In your custom cff or via a modifier:
 particleFlowTowers_Task = cms.Task(
     particleFlowRecHitHBHEAbsIEta1To26,
-    particleFlowRecHitHBHEAbsIEta27To29,
+    particleFlowRecHitHBHEAbsIEta27To27,
+    particleFlowRecHitHBHEAbsIEta28To29,
     particleFlowClusterHBHETowers1To26,
-    particleFlowClusterHBHETowers27To29,
+    particleFlowClusterHBHETowers27To27,
+    particleFlowClusterHBHETowers28To29,
     particleFlowClusterHCALTowers,
     particleFlowClusterHCALTowers1To26,
-    particleFlowClusterHCALTowers27To29,
+    particleFlowClusterHCALTowers27To27,
+    particleFlowClusterHCALTowers28To29,
     particleFlowBlockTowers,
     particleFlowTmpTowers,
     #particleFlowTowers      # your final PFCandidate collection

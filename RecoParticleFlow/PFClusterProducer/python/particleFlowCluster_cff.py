@@ -39,7 +39,8 @@ pfClusteringHBHEHFTask = cms.Task(particleFlowRecHitHBHE,
                                   particleFlowClusterHF,
                                   particleFlowClusterHCAL, 
                                   particleFlowClusterHBHETowers1To26,
-                                  particleFlowClusterHBHETowers27To29,
+                                  particleFlowClusterHBHETowers27To27,
+                                  particleFlowClusterHBHETowers28To29,
                                  )
 
 
@@ -47,7 +48,8 @@ pfClusteringHBHEHFTask = cms.Task(particleFlowRecHitHBHE,
 #TEMP:FIKRI
 
 pfClusteringHBHEHFTask.add(particleFlowRecHitHBHEAbsIEta1To26)
-pfClusteringHBHEHFTask.add(particleFlowRecHitHBHEAbsIEta27To29)
+pfClusteringHBHEHFTask.add(particleFlowRecHitHBHEAbsIEta27To27)
+pfClusteringHBHEHFTask.add(particleFlowRecHitHBHEAbsIEta28To29)
 
 pfClusteringHBHEHF = cms.Sequence(pfClusteringHBHEHFTask)
 

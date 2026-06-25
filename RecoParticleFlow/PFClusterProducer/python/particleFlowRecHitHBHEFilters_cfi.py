@@ -26,7 +26,13 @@ particleFlowRecHitHBHEAbsIEta1To26 = cms.EDProducer("PFRecHitHBHEFilter",
     verbose = cms.bool(False),
 )
 
-particleFlowRecHitHBHEAbsIEta27To29 = particleFlowRecHitHBHEAbsIEta1To26.clone(
+particleFlowRecHitHBHEAbsIEta27To27 = particleFlowRecHitHBHEAbsIEta1To26.clone(
     minAbsIeta = 27,
+    maxAbsIeta = 27,
+)
+
+particleFlowRecHitHBHEAbsIEta28To29 = particleFlowRecHitHBHEAbsIEta1To26.clone(
+    minAbsIeta = 28,
     maxAbsIeta = 29,
 )
+

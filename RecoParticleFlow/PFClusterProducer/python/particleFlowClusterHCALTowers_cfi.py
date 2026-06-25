@@ -5,15 +5,20 @@ particleFlowClusterHCALTowers1To26 = particleFlowClusterHCAL.clone(
     clustersSource = cms.InputTag("particleFlowClusterHBHETowers1To26")
 )
 
-particleFlowClusterHCALTowers27To29 = particleFlowClusterHCAL.clone(
-    clustersSource = cms.InputTag("particleFlowClusterHBHETowers27To29")
+particleFlowClusterHCALTowers27To27 = particleFlowClusterHCAL.clone(
+    clustersSource = cms.InputTag("particleFlowClusterHBHETowers27To27")
+)
+
+particleFlowClusterHCALTowers28To29 = particleFlowClusterHCAL.clone(
+    clustersSource = cms.InputTag("particleFlowClusterHBHETowers28To29")
 )
 
 particleFlowClusterHCALTowers = cms.EDProducer(
     "PFClusterCollectionMerger",
     inputs = cms.VInputTag(
         cms.InputTag("particleFlowClusterHCALTowers1To26"),
-        cms.InputTag("particleFlowClusterHCALTowers27To29"),
+        cms.InputTag("particleFlowClusterHCALTowers27To27"),
+        cms.InputTag("particleFlowClusterHCALTowers28To29"),
     )
 )
 

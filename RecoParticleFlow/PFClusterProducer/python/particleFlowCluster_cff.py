@@ -9,11 +9,13 @@ from RecoParticleFlow.PFClusterProducer.particleFlowRecHitHBHE_cfi import *
 from RecoParticleFlow.PFClusterProducer.particleFlowRecHitHF_cfi import *
 from RecoParticleFlow.PFClusterProducer.particleFlowRecHitHO_cfi import *
 from RecoParticleFlow.PFClusterProducer.particleFlowRecHitPS_cfi import *
+from RecoParticleFlow.PFClusterProducer.particleFlowRecHitHBHEFilters_cfi import *
 
 from RecoParticleFlow.PFClusterProducer.particleFlowClusterECALUncorrected_cfi import *
 from RecoParticleFlow.PFClusterProducer.particleFlowClusterECAL_cff import *
 
 from RecoParticleFlow.PFClusterProducer.particleFlowClusterHBHE_cfi import *
+from RecoParticleFlow.PFClusterProducer.particleFlowClusterHBHETowers_cfi import *
 from RecoParticleFlow.PFClusterProducer.particleFlowClusterHF_cfi import *
 from RecoParticleFlow.PFClusterProducer.particleFlowClusterHCAL_cfi import *
 from RecoParticleFlow.PFClusterProducer.particleFlowClusterHO_cfi import *
@@ -35,7 +37,18 @@ pfClusteringHBHEHFTask = cms.Task(particleFlowRecHitHBHE,
                                   particleFlowRecHitHF,
                                   particleFlowClusterHBHE,
                                   particleFlowClusterHF,
-                                  particleFlowClusterHCAL)
+                                  particleFlowClusterHCAL, 
+                                  particleFlowClusterHBHETowers1To26,
+                                  particleFlowClusterHBHETowers27To29,
+                                 )
+
+
+
+#TEMP:FIKRI
+
+pfClusteringHBHEHFTask.add(particleFlowRecHitHBHEAbsIEta1To26)
+pfClusteringHBHEHFTask.add(particleFlowRecHitHBHEAbsIEta27To29)
+
 pfClusteringHBHEHF = cms.Sequence(pfClusteringHBHEHFTask)
 
 pfClusteringHBHEHFOnlyTask = cms.Task(particleFlowRecHitHBHEOnly,

@@ -14,7 +14,13 @@ from RecoParticleFlow.PFProducer.pfPhotonTranslator_cff import *
 #from RecoParticleFlow.PFProducer.pfGsfElectronCiCSelector_cff import *
 from RecoParticleFlow.PFProducer.pfGsfElectronMVASelector_cff import *
 
+from RecoParticleFlow.PFClusterProducer.particleFlowRecHitHBHEFilters_cfi import *
 from RecoParticleFlow.PFProducer.pfLinker_cff import *
+from RecoParticleFlow.PFClusterProducer.particleFlowClusterHBHETowers_cfi import *
+from RecoParticleFlow.PFClusterProducer.particleFlowClusterHCALTowers_cfi import *
+
+from RecoParticleFlow.PFProducer.particleFlowBlockTowers_cfi import *
+from RecoParticleFlow.PFProducer.particleFlowTowers_cff import particleFlowTmpTowers
 
 from CommonTools.ParticleFlow.pfParticleSelection_cff import *
 
@@ -24,8 +30,11 @@ from RecoParticleFlow.PFProducer.chargedHadronPFTrackIsolation_cfi import *
 from RecoJets.JetProducers.fixedGridRhoProducerFastjet_cfi import *
 fixedGridRhoFastjetAllTmp = fixedGridRhoFastjetAll.clone(pfCandidatesTag = "particleFlowTmp")
 
+print("DEBUG: particleFlowTmpTowers =")
 particleFlowTmpTask = cms.Task(particleFlowTmp)
+particleFlowTmpTowersTask = cms.Task(particleFlowTmpTowers)
 particleFlowTmpSeq = cms.Sequence(particleFlowTmpTask)
+particleFlowTmpTowersSeq = cms.Sequence(particleFlowTmpTowersTask)
 
 particleFlowRecoTask = cms.Task( particleFlowTrackWithDisplacedVertexTask,
 #                                pfGsfElectronCiCSelectionSequence,
@@ -33,6 +42,7 @@ particleFlowRecoTask = cms.Task( particleFlowTrackWithDisplacedVertexTask,
                                  particleFlowBlock,
                                  particleFlowEGammaFullTask,
                                  particleFlowTmpTask,
+                                 particleFlowTmpTowersTask,
                                  fixedGridRhoFastjetAllTmp,
                                  particleFlowTmpPtrs,
                                  particleFlowEGammaFinalTask,
@@ -41,6 +51,21 @@ particleFlowReco = cms.Sequence(particleFlowRecoTask)
 
 particleFlowLinksTask = cms.Task( particleFlow, particleFlowPtrs, chargedHadronPFTrackIsolation, particleBasedIsolationTask)
 particleFlowLinks = cms.Sequence(particleFlowLinksTask)
+
+# In your custom cff or via a modifier:
+particleFlowTowers_Task = cms.Task(
+    particleFlowRecHitHBHEAbsIEta1To26,
+    particleFlowRecHitHBHEAbsIEta27To29,
+    particleFlowClusterHBHETowers1To26,
+    particleFlowClusterHBHETowers27To29,
+    particleFlowClusterHCALTowers,
+    particleFlowClusterHCALTowers1To26,
+    particleFlowClusterHCALTowers27To29,
+    particleFlowBlockTowers,
+    particleFlowTmpTowers,
+    #particleFlowTowers      # your final PFCandidate collection
+)
+particleFlowRecoTowers = cms.Sequence(particleFlowTowers_Task)
 
 #
 # for phase 2

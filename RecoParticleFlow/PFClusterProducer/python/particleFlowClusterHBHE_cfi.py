@@ -122,6 +122,7 @@ particleFlowClusterHBHE = cms.EDProducer(
 
 #####
 
+'''
 # offline 2018 -- uncollapsed
 from Configuration.Eras.Modifier_run2_HE_2018_cff import run2_HE_2018
 from Configuration.ProcessModifiers.run2_HECollapse_2018_cff import run2_HECollapse_2018
@@ -159,20 +160,25 @@ run3_egamma_2023.toModify(particleFlowClusterHBHE,
     ),
 )
 
+'''
 
 # HCALonly WF
 particleFlowClusterHBHEOnly = particleFlowClusterHBHE.clone(
     recHitsSource = "particleFlowRecHitHBHEOnly"
 )
 
+'''
+
 #--- Use DB conditions for cuts&seeds for Run3 and phase2
 from Configuration.Eras.Modifier_hcalPfCutsFromDB_cff import hcalPfCutsFromDB
 hcalPfCutsFromDB.toModify( particleFlowClusterHBHE,
                            usePFThresholdsFromDB = True)
 
+'''
 # Alpaka and legacy
 particleFlowClusterHBHEOnlyLegacy = particleFlowClusterHBHEOnly.clone()
 
+'''
 from RecoParticleFlow.PFClusterProducer.legacyPFClusterProducer_cfi import legacyPFClusterProducer as _legacyPFClusterProducer
 from Configuration.ProcessModifiers.alpaka_cff import alpaka
 alpaka.toReplaceWith(particleFlowClusterHBHE, _legacyPFClusterProducer.clone(
@@ -190,4 +196,5 @@ alpaka.toReplaceWith(particleFlowClusterHBHEOnly, _legacyPFClusterProducer.clone
         PFRecHitsLabelIn = 'pfRecHitSoAProducerHBHEOnly'
     )
 )
+'''
 

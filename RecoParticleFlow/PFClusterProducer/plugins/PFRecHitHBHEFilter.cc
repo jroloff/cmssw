@@ -120,8 +120,11 @@ void PFRecHitHBHEFilter::produce(edm::Event& evt, const edm::EventSetup&) {
   auto const& in = *handle;
 
   auto out = std::make_unique<reco::PFRecHitCollection>();
+  std::vector<int> indexMap(in.size(), -1);
 
-  for (auto const& hit : in) {
+  //for (auto const& hit : in) {
+  for (size_t i = 0; i < in.size(); i++) {
+    auto const& hit = in[i];
     const double e = useAbsEnergy_ ? std::abs(hit.energy()) : hit.energy();
     if (e < minEnergy_) continue;
 
@@ -132,12 +135,55 @@ void PFRecHitHBHEFilter::produce(edm::Event& evt, const edm::EventSetup&) {
     reco::PFRecHit hit_copy = reco::PFRecHit(hit);
     hit_copy.clearNeighbours();
     hit_copy.neighbours(); // This doesn't actually seem to work for the moment. I'm not sure if this matters yet for Run 3...
+    indexMap[i] = out->size();
     out->push_back(hit_copy);
   }
+
+  // Build detId -> new index lookup
+  std::unordered_map<unsigned int, unsigned int> detIdToIndex;
+  for (size_t i = 0; i < out->size(); i++) {
+    detIdToIndex[(*out)[i].detId()] = i;
+  }
+
+
+for (size_t i = 0; i < in.size(); i++) {
+    if (indexMap[i] < 0) continue;
+    reco::PFRecHit& oldHit = const_cast<reco::PFRecHit&>(in[i]);  // needed for non-const neighbourInfos()
+    auto& newHit = (*out)[indexMap[i]];
+
+    auto const& nbrs = oldHit.neighbours();
+    auto const& infos = oldHit.neighbourInfos();
+
+    size_t n = 0;
+    for (auto const& nbrIdx : nbrs) {
+       int detId = in[nbrIdx].detId();
+        if (nbrIdx < in.size()) {
+            auto it = detIdToIndex.find(detId);
+            if (it != detIdToIndex.end()) {
+                unsigned short flag = infos[n];
+                short absx = (flag >> 1) & 0x7;
+                short x = (flag & 1) ? absx : -absx;
+                short absy = (flag >> 5) & 0x7;
+                short y = (flag & (1 << 4)) ? absy : -absy;
+                short absz = (flag >> 9) & 0x7;
+                short z = (flag & (1 << 8)) ? absz : -absz;
+                newHit.addNeighbour(x, y, z, it->second);
+            }
+        }
+        n++;
+    }
+}
+
 
   evt.put(std::move(out));
 
 }
 
+
 #include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(PFRecHitHBHEFilter);
+
+
+
+
+

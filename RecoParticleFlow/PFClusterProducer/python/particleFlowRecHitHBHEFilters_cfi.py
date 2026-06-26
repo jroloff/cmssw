@@ -1,4 +1,6 @@
 import FWCore.ParameterSet.Config as cms
+from RecoParticleFlow.PFClusterProducer.particleFlowRecHitHBHE_cfi import *
+
 
 particleFlowRecHitHBHEAbsIEta1To26 = cms.EDProducer("PFRecHitHBHEFilter",
     src = cms.InputTag("particleFlowRecHitHBHE"),
@@ -35,4 +37,5 @@ particleFlowRecHitHBHEAbsIEta28To29 = particleFlowRecHitHBHEAbsIEta1To26.clone(
     minAbsIeta = 28,
     maxAbsIeta = 29,
 )
+
 

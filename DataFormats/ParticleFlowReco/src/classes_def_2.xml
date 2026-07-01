@@ -1,6 +1,19 @@
 <lcgdict>
 <selection>
 
+  <class name="reco::PFEHCluster"/>
+  <class name="std::vector<reco::PFEHCluster>"/>
+  <class name="edm::Wrapper<reco::PFEHCluster>"/>
+  <class name="edm::Wrapper<std::vector<reco::PFEHCluster> >"/>
+
+  <class name="edm::Ref<std::vector<reco::PFCluster>,reco::PFCluster,edm::refhelper::FindUsingAdvance<std::vector<reco::PFCluster>,reco::PFCluster>>"/>
+  <class name="edm::RefVector<std::vector<reco::PFCluster>,reco::PFCluster,edm::refhelper::FindUsingAdvance<std::vector<reco::PFCluster>,reco::PFCluster>>"/>
+  <class name="edm::refhelper::FindUsingAdvance<std::vector<reco::PFCluster>,reco::PFCluster>"/>
+
+
+
+
+
   <class name="reco::PFCluster" ClassVersion="17">
    <version ClassVersion="17" checksum="3021111509"/>
    <version ClassVersion="16" checksum="1786894710"/>
@@ -222,7 +235,6 @@
   <class name="edm::RefVector<std::vector<reco::GsfPFRecTrack>,reco::GsfPFRecTrack,edm::refhelper::FindUsingAdvance<std::vector<reco::GsfPFRecTrack>,reco::GsfPFRecTrack> >"/>
   <class name="std::vector<edm::Ref<std::vector<reco::GsfPFRecTrack>,reco::GsfPFRecTrack,edm::refhelper::FindUsingAdvance<std::vector<reco::GsfPFRecTrack>,reco::GsfPFRecTrack> > >"/>
 
-  <class name="edm::Ref<std::vector<reco::PFCluster>,reco::PFCluster,edm::refhelper::FindUsingAdvance<std::vector<reco::PFCluster>,reco::PFCluster> >"/>
 
 
   <class name="pftools::ParticleFiltrationDecision" ClassVersion="11">
@@ -291,6 +303,7 @@
     <field name="isValid" transient="true"/>
     <field name="linkedPFObjects" transient="true"/>
   </class>
+
 
   <class name="std::vector<reco::RecoPFClusterRefCandidate>"/>
   <class name="edm::Wrapper<std::vector<reco::RecoPFClusterRefCandidate> >"/>

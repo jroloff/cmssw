@@ -36,6 +36,7 @@
 #include "DataFormats/ParticleFlowReco/interface/PFDisplacedVertexFwd.h"
 #include "DataFormats/ParticleFlowReco/interface/PFDisplacedVertexSeed.h"
 #include "DataFormats/ParticleFlowReco/interface/PFDisplacedVertexSeedFwd.h"
+#include "DataFormats/ParticleFlowReco/interface/PFEHCluster.h"
 #include "DataFormats/ParticleFlowReco/interface/PFNuclearInteraction.h"
 #include "DataFormats/ParticleFlowReco/interface/PFRecHit.h"
 #include "DataFormats/ParticleFlowReco/interface/PFRecTrack.h"

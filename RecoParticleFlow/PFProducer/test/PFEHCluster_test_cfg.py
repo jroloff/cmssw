@@ -120,7 +120,8 @@ process.load("RecoParticleFlow.PFClusterProducer.particleFlowEHCluster_cff")
 # Output: write the new collections alongside the existing RECO content.
 # -----------------------------------------------------------------------
 process.RECOoutput.outputCommands.extend(cms.untracked.vstring(
-        "keep recoPFClusters_*_*_*",
+        "keep recoPFCandidates_*_*_*",
+        "keep recoPFEHClusters_*_*_*",
         "keep recoPFEHClusters_*_*_*",
         "keep recoPFBlocks_*_*_*",
     ),)

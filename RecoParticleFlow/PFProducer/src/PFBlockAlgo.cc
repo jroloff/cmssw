@@ -146,7 +146,6 @@ reco::PFBlockCollection PFBlockAlgo::findBlocks() {
   // the blocks have not been passed to the event, and need to be cleared
   blocks.reserve(elements_.size());
 
-  std::cout << "Blocks " << __LINE__ << std::endl;
   QuickUnion qu(elements_.size());
   const auto elem_size = elements_.size();
   for (unsigned i = 0; i < elem_size; ++i) {
@@ -218,7 +217,6 @@ reco::PFBlockCollection PFBlockAlgo::findBlocks() {
 
 void PFBlockAlgo::packLinks(reco::PFBlock& block,
                             const std::unordered_map<std::pair<unsigned int, unsigned int>, double>& links) const {
-  std::cout << "Blocks " << __LINE__ << std::endl;
   constexpr unsigned rowsize = reco::PFBlockElement::kNBETypes;
 
   const edm::OwnVector<reco::PFBlockElement>& els = block.elements();

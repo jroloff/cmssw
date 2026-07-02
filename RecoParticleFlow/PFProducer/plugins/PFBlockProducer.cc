@@ -385,7 +385,6 @@ void PFBlockProducer::produce(Event& iEvent, const EventSetup& iSetup) {
   pfBlockAlgo_.buildElements(iEvent);
 
   auto blocks = pfBlockAlgo_.findBlocks();
-  std::cout << "Producer " << __LINE__ << std::endl;
 
   if (verbose_) {
     ostringstream str;
@@ -399,8 +398,6 @@ void PFBlockProducer::produce(Event& iEvent, const EventSetup& iSetup) {
 
     LogInfo("PFBlockProducer") << str.str() << endl;
   }
-  std::cout << "Producer " << __LINE__ << std::endl;
 
   iEvent.emplace(putToken_, blocks);
-  std::cout << "Producer " << __LINE__ << std::endl;
 }

@@ -99,15 +99,10 @@ pfEHBlock = particleFlowBlock.clone(
 # Step 3: create PFCandidates from the blocks.
 # Point at the cloned block producer, not the standard one.
 # -----------------------------------------------------------------------
-#particleFlowEH = cms.EDProducer(
-#    "PFEHCandidateProducer",
-#    pfBlocks               = cms.InputTag("pfEHBlock"),
-#    calibAlpha             = cms.double(1.00),
-#    calibBeta              = cms.double(1.30),
-#    nSigmaExcess           = cms.double(1.0),
-#    minPhotonEnergy        = cms.double(0.5),
-#    minNeutralHadronEnergy = cms.double(1.0),
-#)
+#from RecoParticleFlow.PFProducer.particleFlow_cff import *
+from RecoParticleFlow.PFProducer.particleFlow_cfi import particleFlow as _particleFlow
+
+particleFlowEH = _particleFlow.clone(blocks = cms.InputTag("pfEHBlock"))
 
 # -----------------------------------------------------------------------
 # Task and Sequence
@@ -116,7 +111,7 @@ pfEHBlock = particleFlowBlock.clone(
 particleFlowEHTask = cms.Task(
     pfEHClusterProducer,
     pfEHBlock,
-    #particleFlowEH,
+    particleFlowEH,
 )
 
 particleFlowEHCluster = cms.Sequence(particleFlowEHTask)

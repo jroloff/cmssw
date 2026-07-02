@@ -385,7 +385,6 @@ void KDTreeLinkerTrackEHCluster::searchLinks() {
 
 void KDTreeLinkerTrackEHCluster::updatePFBlockEltWithLinks() {
   //TODO YG : Check if cluster positionREP() is valid ?
-  std::cout << __LINE__ << std::endl;
 
   // Here we save in each ECAL cluster the list of phi/eta values of linked tracks.
   for (BlockElt2BlockEltMap::iterator it = cluster2TargetLinks_.begin(); it != cluster2TargetLinks_.end(); ++it) {
@@ -410,7 +409,6 @@ void KDTreeLinkerTrackEHCluster::updatePFBlockEltWithLinks() {
 }
 
 void KDTreeLinkerTrackEHCluster::clear() {
-  std::cout << __LINE__ << std::endl;
   targetSet_.clear();
   fieldClusterSet_.clear();
 

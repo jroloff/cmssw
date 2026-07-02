@@ -16,10 +16,9 @@ namespace reco {
     PFBlockElementEHCluster() {}
 
     /// \brief constructor.
-    /// type must be equal to PS1, PS2, ECAL, HCAL.
     /// \todo add a protection against the other types...
-    PFBlockElementEHCluster(const PFEHClusterRef& ref, PFBlockElement::Type type)
-        : PFBlockElement(type), ehClusterRef_(ref) {}
+    PFBlockElementEHCluster(const PFEHClusterRef& ref)
+        : PFBlockElement(reco::PFBlockElement::EH), ehClusterRef_(ref) {}
 
     PFBlockElement* clone() const override { return new PFBlockElementEHCluster(*this); }
 

@@ -13,6 +13,7 @@
 #include "DataFormats/Candidate/interface/VertexCompositeCandidateFwd.h"
 
 #include "DataFormats/ParticleFlowReco/interface/PFMultilinksTC.h"  // Glowinski & Gouzevitch
+#include "DataFormats/ParticleFlowReco/interface/PFMultilinksTEHC.h" 
 
 #include <iostream>
 
@@ -116,6 +117,8 @@ namespace reco {
     // Glowinski & Gouzevitch
     void setMultilinks(const PFMultiLinksTC& ml, Type type) { multilinks_[type] = ml; }
     void setIsValidMultilinks(bool isVal, Type type) { multilinks_[type].isValid = isVal; }
+    void setMultilinksEH(const PFMultiLinksTEHC& ml, Type type) { multilinksEH_[type] = ml; }
+    void setIsValidMultilinksEH(bool isVal, Type type) { multilinksEH_[type].isValid = isVal; }
 
     bool isMultilinksValide(Type type) const {
       const auto& it = multilinks_.find(type);
@@ -124,7 +127,16 @@ namespace reco {
       else
         return false;  // no multilinks_ for the specified type
     }
+
+    bool isMultilinksValidEH(Type type) const {
+      const auto& it = multilinksEH_.find(type);
+      if (it != multilinksEH_.end())
+        return it->second.isValid;
+      else
+        return false;  // no multilinks_ for the specified type
+    }
     const PFMultilinksType& getMultilinks(Type type) const { return multilinks_.at(type).linkedPFObjects; }
+    const PFMultilinksType& getMultilinksEH(Type type) const { return multilinksEH_.at(type).linkedPFObjects; }
     // ! Glowinski & Gouzevitch
 
     /// do we have a valid time information
@@ -155,6 +167,7 @@ namespace reco {
     // Glowinski & Gouzevitch
     // PFMultiLinks for each different link target type
     std::map<reco::PFBlockElement::Type, PFMultiLinksTC> multilinks_;
+    std::map<reco::PFBlockElement::Type, PFMultiLinksTEHC> multilinksEH_;
     // ! Glowinski & Gouzevitch
 
     /// timing information (valid if timeError_ >= 0)

@@ -58,7 +58,8 @@ private:
   BlockElt2BlockEltMap cluster2TargetLinks_;
 
   // Map of the EH clusters associated to a rechit.
-  RecHit2BlockEltMap rechit2ClusterLinks_;
+  RecHit2BlockEltMap rechit2ClusterLinksEcal_;
+  RecHit2BlockEltMap rechit2ClusterLinksHcal_;
 
   // KD trees
   KDTreeLinkerAlgo<reco::PFRecHit const *> treeEcal_;
@@ -87,7 +88,6 @@ void KDTreeLinkerTrackEHCluster::insertFieldClusterElt(reco::PFBlockElement *ehC
   for(auto clusterref: ecalClusters){
     const std::vector<reco::PFRecHitFraction> &fraction = clusterref->recHitFractions();
 
-    //fieldClusterSet_.insert(ehCluster);
     for (size_t rhit = 0; rhit < fraction.size(); ++rhit) {
       const reco::PFRecHitRef &rh = fraction[rhit].recHitRef();
       double fract = fraction[rhit].fraction();
@@ -100,7 +100,7 @@ void KDTreeLinkerTrackEHCluster::insertFieldClusterElt(reco::PFBlockElement *ehC
       const reco::PFRecHit &rechit = *rh;
   
       // We save the links rechit to EcalClusters
-      rechit2ClusterLinks_[&rechit].insert(ehCluster);
+      rechit2ClusterLinksEcal_[&rechit].insert(ehCluster);
   
       // We create a list of rechits
       rechitsSetEcal_.insert(&rechit);
@@ -112,7 +112,6 @@ void KDTreeLinkerTrackEHCluster::insertFieldClusterElt(reco::PFBlockElement *ehC
     const std::vector<reco::PFRecHitFraction> &fraction = clusterref->recHitFractions();
 
     // We create a list of hcalCluster
-    //fieldClusterSet_.insert(ehCluster);
     for (size_t rhit = 0; rhit < fraction.size(); ++rhit) {
       const reco::PFRecHitRef &rh = fraction[rhit].recHitRef();
       double fract = fraction[rhit].fraction();
@@ -123,7 +122,7 @@ void KDTreeLinkerTrackEHCluster::insertFieldClusterElt(reco::PFBlockElement *ehC
       const reco::PFRecHit &rechit = *rh;
  
       // We save the links rechit to EcalClusters
-      rechit2ClusterLinks_[&rechit].insert(ehCluster);
+      rechit2ClusterLinksHcal_[&rechit].insert(ehCluster);
  
       // We create a list of rechits
       rechitsSetHcal_.insert(&rechit);
@@ -246,7 +245,7 @@ void KDTreeLinkerTrackEHCluster::searchLinks() {
         dphi = 2. * M_PI - dphi;
 
       // Find all clusters associated to given rechit
-      RecHit2BlockEltMap::iterator ret = rechit2ClusterLinks_.find(recHit);
+      RecHit2BlockEltMap::iterator ret = rechit2ClusterLinksEcal_.find(recHit);
 
       for (BlockEltSet::const_iterator clusterIt = ret->second.begin(); clusterIt != ret->second.end(); clusterIt++) {
         const reco::PFEHClusterRef ehclusterref = (*clusterIt)->ehClusterRef();
@@ -362,7 +361,7 @@ void KDTreeLinkerTrackEHCluster::searchLinks() {
         dphi = 2. * M_PI - dphi;
 
       // Find all clusters associated to given rechit
-      RecHit2BlockEltMap::iterator ret = rechit2ClusterLinks_.find(recHit);
+      RecHit2BlockEltMap::iterator ret = rechit2ClusterLinksHcal_.find(recHit);
 
       for (BlockEltSet::iterator clusterIt = ret->second.begin(); clusterIt != ret->second.end(); clusterIt++) {
         const reco::PFEHClusterRef ehclusterref = (*clusterIt)->ehClusterRef();
@@ -415,7 +414,8 @@ void KDTreeLinkerTrackEHCluster::clear() {
   rechitsSetEcal_.clear();
   rechitsSetHcal_.clear();
 
-  rechit2ClusterLinks_.clear();
+  rechit2ClusterLinksEcal_.clear();
+  rechit2ClusterLinksHcal_.clear();
   cluster2TargetLinks_.clear();
 
   treeEcal_.clear();

@@ -21,7 +21,6 @@ void EHClusterImporter::importToBlock(const edm::Event& e, BlockElementImporterB
   auto cbegin = clusters->cbegin();
   auto cend = clusters->cend();
   for (auto clus = cbegin; clus != cend; ++clus) {
-    reco::PFBlockElement::Type type = reco::PFBlockElement::NONE;
     reco::PFEHClusterRef cref(clusters, std::distance(cbegin, clus));
     reco::PFBlockElement* cptr = new reco::PFBlockElementEHCluster(cref);
     elems.emplace_back(cptr);

@@ -32,7 +32,7 @@ pfEHClusterProducer = cms.EDProducer(
     #hcalClusters = cms.InputTag("particleFlowClusterHCAL"),
     ## Maximum dR in eta-phi between an ECAL and HCAL cluster for them to
     ## be merged.  Corresponds roughly to 1.7 HCAL tower widths in the barrel.
-    #matchingDeltaR = cms.double(0.2),
+    matchingDeltaR = cms.double(0.0),
 )
 
 # -----------------------------------------------------------------------

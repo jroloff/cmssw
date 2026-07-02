@@ -237,6 +237,16 @@ void PFBlockProducer::fillDescriptions(edm::ConfigurationDescriptions& descripti
     }
     {
       edm::ParameterSet pset;
+      pset.addParameter<std::string>("linkerName", "TrackAndEHClusterLinker");
+      pset.addParameter<std::string>("linkType", "TRACK:EH");
+      pset.addParameter<bool>("useKDTree ", true);
+      pset.addParameter<std::string>("trajectoryLayerEntrance", "HCALEntrance");
+      pset.addParameter<std::string>("trajectoryLayerExit", "HCALExit");
+      pset.addParameter<int>("nMaxHcalLinksPerTrack", 1);
+      vpset.emplace_back(pset);
+    }
+    {
+      edm::ParameterSet pset;
       pset.addParameter<std::string>("linkerName", "TrackAndHOLinker");
       pset.addParameter<std::string>("linkType", "TRACK:HO");
       pset.addParameter<bool>("useKDTree", false);
@@ -375,6 +385,7 @@ void PFBlockProducer::produce(Event& iEvent, const EventSetup& iSetup) {
   pfBlockAlgo_.buildElements(iEvent);
 
   auto blocks = pfBlockAlgo_.findBlocks();
+  std::cout << "Producer " << __LINE__ << std::endl;
 
   if (verbose_) {
     ostringstream str;
@@ -388,6 +399,8 @@ void PFBlockProducer::produce(Event& iEvent, const EventSetup& iSetup) {
 
     LogInfo("PFBlockProducer") << str.str() << endl;
   }
+  std::cout << "Producer " << __LINE__ << std::endl;
 
   iEvent.emplace(putToken_, blocks);
+  std::cout << "Producer " << __LINE__ << std::endl;
 }

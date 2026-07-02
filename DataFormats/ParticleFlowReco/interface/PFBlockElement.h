@@ -4,6 +4,7 @@
 #include "DataFormats/ParticleFlowReco/interface/PFRecTrackFwd.h"
 #include "DataFormats/ParticleFlowReco/interface/PFDisplacedTrackerVertex.h"
 #include "DataFormats/ParticleFlowReco/interface/PFClusterFwd.h"
+#include "DataFormats/ParticleFlowReco/interface/PFEHClusterFwd.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
 #include "DataFormats/EgammaCandidates/interface/Conversion.h"
@@ -41,7 +42,8 @@ namespace reco {
       SC = 10,
       HO = 11,
       HGCAL = 12,
-      kNBETypes = 13
+      EH = 13,
+      kNBETypes = 14
     };
 
     enum TrackType { DEFAULT = 0, T_FROM_DISP, T_TO_DISP, T_FROM_GAMMACONV, MUON, T_FROM_V0 };
@@ -88,6 +90,7 @@ namespace reco {
     virtual const reco::TrackRef& trackRef() const { return nullTrack_; }
     virtual const PFRecTrackRef& trackRefPF() const { return nullPFRecTrack_; }
     virtual const PFClusterRef& clusterRef() const { return nullPFCluster_; }
+    virtual const PFEHClusterRef& ehClusterRef() const { return nullPFEHCluster_; }
     virtual const PFDisplacedTrackerVertexRef& displacedVertexRef(TrackType trType) const { return nullPFDispVertex_; }
     virtual const ConversionRefVector& convRefs() const { return nullConv_; }
     virtual const MuonRef& muonRef() const { return nullMuon_; }
@@ -162,6 +165,7 @@ namespace reco {
     const static reco::TrackRef nullTrack_;
     const static PFRecTrackRef nullPFRecTrack_;
     const static PFClusterRef nullPFCluster_;
+    const static PFEHClusterRef nullPFEHCluster_;
     const static PFDisplacedTrackerVertexRef nullPFDispVertex_;
     const static ConversionRefVector nullConv_;
     const static MuonRef nullMuon_;

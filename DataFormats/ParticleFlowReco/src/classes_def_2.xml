@@ -11,6 +11,10 @@
   <class name="edm::refhelper::FindUsingAdvance<std::vector<reco::PFCluster>,reco::PFCluster>"/>
 
 
+  <class name="edm::Ref<std::vector<reco::PFEHCluster>,reco::PFEHCluster,edm::refhelper::FindUsingAdvance<std::vector<reco::PFEHCluster>,reco::PFEHCluster>>"/>
+  <class name="edm::RefVector<std::vector<reco::PFEHCluster>,reco::PFEHCluster,edm::refhelper::FindUsingAdvance<std::vector<reco::PFEHCluster>,reco::PFEHCluster>>"/>
+  <class name="edm::refhelper::FindUsingAdvance<std::vector<reco::PFEHCluster>,reco::PFEHCluster>"/>
+
 
 
 
@@ -146,7 +150,8 @@
   <class name="std::vector<reco::PFSimParticle>"/>
   <class name="edm::Wrapper<std::vector<reco::PFSimParticle> >"/>
 
-  <class name="reco::PFBlockElement" ClassVersion="15">
+  <class name="reco::PFBlockElement" ClassVersion="16">
+   <version ClassVersion="16" checksum="2781640705"/>
    <version ClassVersion="15" checksum="684943224"/>
    <version ClassVersion="14" checksum="3982859549"/>
    <version ClassVersion="13" checksum="4257111441"/>
@@ -162,11 +167,13 @@
    <field name="nullVertex_" transient="true"/>
   </class>
   <class name="std::map<reco::PFBlockElement::Type,reco::PFMultiLinksTC>" />
+  <class name="std::map<reco::PFBlockElement::Type,reco::PFMultiLinksTEHC>" />
   <class name="std::vector<reco::PFBlockElement *>" />
   <class name="edm::OwnVector<reco::PFBlockElement, edm::ClonePolicy<reco::PFBlockElement> >" rntupleStreamerMode="true"/>
   <class name="edm::Wrapper<edm::OwnVector<reco::PFBlockElement, edm::ClonePolicy<reco::PFBlockElement> > >" />
 
-  <class name="reco::PFBlockElementTrack" ClassVersion="16">
+  <class name="reco::PFBlockElementTrack" ClassVersion="17">
+   <version ClassVersion="17" checksum="1083556387"/>
    <version ClassVersion="16" checksum="700008520"/>
    <version ClassVersion="15" checksum="1577934967"/>
    <version ClassVersion="14" checksum="3952424659"/>
@@ -179,7 +186,8 @@
 -->
   </class>
 
-  <class name="reco::PFBlockElementGsfTrack" ClassVersion="15">
+  <class name="reco::PFBlockElementGsfTrack" ClassVersion="16">
+   <version ClassVersion="16" checksum="4001195795"/>
    <version ClassVersion="15" checksum="233050648"/>
    <version ClassVersion="14" checksum="3921871079"/>
    <version ClassVersion="13" checksum="2453155267"/>
@@ -192,7 +200,8 @@
 -->
   </class>
 
-  <class name="reco::PFBlockElementBrem" ClassVersion="15">
+  <class name="reco::PFBlockElementBrem" ClassVersion="16">
+   <version ClassVersion="16" checksum="2547700036"/>
    <version ClassVersion="15" checksum="2963077707"/>
    <version ClassVersion="14" checksum="3702597792"/>
    <version ClassVersion="13" checksum="157699540"/>
@@ -206,7 +215,8 @@
   </class>
 
 
-  <class name="reco::PFBlockElementCluster" ClassVersion="16">
+  <class name="reco::PFBlockElementCluster" ClassVersion="17">
+   <version ClassVersion="17" checksum="3878632688"/>
    <version ClassVersion="16" checksum="4263698413"/>
    <version ClassVersion="15" checksum="3252388"/>
    <version ClassVersion="14" checksum="407383072"/>
@@ -215,6 +225,8 @@
    <version ClassVersion="10" checksum="2503385411"/>
    <version ClassVersion="11" checksum="2936163017"/>
   </class>
+
+  <class name="reco::PFBlockElementEHCluster"/>
 
   <class name="std::map<unsigned int,reco::PFBlock::Link>"/>
   <class name="reco::PFBlock::Link" ClassVersion="10">
@@ -286,7 +298,8 @@
   <class name="edm::Wrapper<edm::ValueMap<reco::PreIdRef> >"/>
   <class name="edm::Ref<std::vector<reco::PreId>,reco::PreId,edm::refhelper::FindUsingAdvance<std::vector<reco::PreId>,reco::PreId> >" />
 
-  <class name="reco::PFBlockElementSuperCluster" ClassVersion="16">
+  <class name="reco::PFBlockElementSuperCluster" ClassVersion="17">
+   <version ClassVersion="17" checksum="3425053668"/>
    <version ClassVersion="16" checksum="4220702137"/>
    <version ClassVersion="15" checksum="1074027768"/>
    <version ClassVersion="14" checksum="285242772"/>
@@ -304,6 +317,10 @@
     <field name="linkedPFObjects" transient="true"/>
   </class>
 
+  <class name="reco::PFMultiLinksTEHC"> 
+    <field name="isValid" transient="true"/>
+    <field name="linkedPFObjects" transient="true"/>
+  </class>
 
   <class name="std::vector<reco::RecoPFClusterRefCandidate>"/>
   <class name="edm::Wrapper<std::vector<reco::RecoPFClusterRefCandidate> >"/>

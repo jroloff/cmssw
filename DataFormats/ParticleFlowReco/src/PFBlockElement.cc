@@ -3,11 +3,13 @@
 #include "DataFormats/ParticleFlowReco/interface/PFBlockElementGsfTrack.h"
 #include "DataFormats/ParticleFlowReco/interface/PFBlockElementBrem.h"
 #include "DataFormats/ParticleFlowReco/interface/PFBlockElementCluster.h"
+#include "DataFormats/ParticleFlowReco/interface/PFBlockElementEHCluster.h"
 #include "DataFormats/ParticleFlowReco/interface/PFBlockElementSuperCluster.h"
 
 const reco::TrackRef reco::PFBlockElement::nullTrack_ = reco::TrackRef();
 const reco::PFRecTrackRef reco::PFBlockElement::nullPFRecTrack_ = reco::PFRecTrackRef();
 const reco::PFClusterRef reco::PFBlockElement::nullPFCluster_ = reco::PFClusterRef();
+const reco::PFEHClusterRef reco::PFBlockElement::nullPFEHCluster_ = reco::PFEHClusterRef();
 const reco::PFDisplacedTrackerVertexRef reco::PFBlockElement::nullPFDispVertex_ = reco::PFDisplacedTrackerVertexRef();
 const reco::ConversionRefVector reco::PFBlockElement::nullConv_ = reco::ConversionRefVector();
 const reco::MuonRef reco::PFBlockElement::nullMuon_ = reco::MuonRef();
@@ -76,6 +78,12 @@ std::ostream& reco::operator<<(std::ostream& out, const PFBlockElement& element)
         const reco::PFBlockElementSuperCluster& sc = dynamic_cast<const reco::PFBlockElementSuperCluster&>(element);
         sc.Dump(out);
         out << " from SuperCluster;";
+        break;
+      }
+      case PFBlockElement::EH: {
+        const reco::PFBlockElementEHCluster& sc = dynamic_cast<const reco::PFBlockElementEHCluster&>(element);
+        sc.Dump(out);
+        out << " from EHCluster;";
         break;
       }
       default:

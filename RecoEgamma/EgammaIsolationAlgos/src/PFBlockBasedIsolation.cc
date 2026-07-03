@@ -3,6 +3,7 @@
 #include "DataFormats/ParticleFlowReco/interface/PFBlockFwd.h"
 #include "DataFormats/ParticleFlowReco/interface/PFBlock.h"
 #include "DataFormats/ParticleFlowReco/interface/PFCluster.h"
+#include "DataFormats/ParticleFlowReco/interface/PFEHCluster.h"
 #include "DataFormats/ParticleFlowReco/interface/PFBlockElementCluster.h"
 
 #include <cmath>

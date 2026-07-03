@@ -374,7 +374,8 @@ void KDTreeLinkerTrackEHCluster::searchLinks() {
   
           // Check if the track and the cluster are linked
           if (deta < (_rhsizeeta / 2.) && dphi < (_rhsizephi / 2.))
-            cluster2TargetLinks_[*it].insert(*clusterIt);
+            //cluster2TargetLinks_[*it].insert(*clusterIt);
+            cluster2TargetLinks_[*clusterIt].insert(*it);
         }
       }
     }

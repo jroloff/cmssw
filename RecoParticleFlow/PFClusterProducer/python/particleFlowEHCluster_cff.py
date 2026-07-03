@@ -49,7 +49,7 @@ pfEHClusterProducer = cms.EDProducer(
 from RecoParticleFlow.PFProducer.particleFlowBlock_cfi import particleFlowBlock
 
 
-_excludedImporters = {"ECALClusterImporter", "HCALClusterImporter"}
+_excludedImporters = {"ECALClusterImporter", "HCALClusterImporter", "HOClusterImporter", "HFClusterImporter"}
 pfEHBlock = particleFlowBlock.clone(
     # Replace the bare ECAL and HCAL cluster sources with the merged EH
     # collection.  The elementImporters list controls which collections

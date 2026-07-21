@@ -32,7 +32,20 @@ pfEHClusterProducer = cms.EDProducer(
     #hcalClusters = cms.InputTag("particleFlowClusterHCAL"),
     ## Maximum dR in eta-phi between an ECAL and HCAL cluster for them to
     ## be merged.  Corresponds roughly to 1.7 HCAL tower widths in the barrel.
-    matchingDeltaR = cms.double(0.0),
+    #matchingDeltaR = cms.double(0.0),
+    # Input PFCluster collections from the standard PF clustering sequence.
+    ecalClusters = cms.InputTag("particleFlowClusterECAL"),
+    hcalClusters = cms.InputTag("particleFlowClusterHCAL"),
+    hfClusters   = cms.InputTag("particleFlowClusterHF"),
+    hoClusters   = cms.InputTag("particleFlowClusterHO"),
+    # Maximum dR in eta-phi between an ECAL cluster and an HCAL/HF/HO
+    # cluster for them to be merged into a single PFEHCluster.
+    #matchingDeltaR   = cms.double(0.0),
+    matchingDeltaRHF = cms.double(0.0),
+    matchingDeltaRHO = cms.double(0.0),
+    matchingDeltaR   = cms.double(0.15),
+    #matchingDeltaRHF = cms.double(0.3),
+    #matchingDeltaRHO = cms.double(0.2),
 )
 
 # -----------------------------------------------------------------------
@@ -48,52 +61,80 @@ pfEHClusterProducer = cms.EDProducer(
 # -----------------------------------------------------------------------
 from RecoParticleFlow.PFProducer.particleFlowBlock_cfi import particleFlowBlock
 
-
 _excludedImporters = {"ECALClusterImporter", "HCALClusterImporter", "HOClusterImporter", "HFClusterImporter"}
+
+_replacedClusterImporters = {
+    ("ECALClusterImporter", "particleFlowClusterECAL"),
+    ("GenericClusterImporter", "particleFlowClusterHCAL"),
+    ("GenericClusterImporter", "particleFlowClusterHF"),
+    ("GenericClusterImporter", "particleFlowClusterHO"),
+}
+ 
+ 
+def _isReplacedImporter(imp):
+    if not hasattr(imp, "source"):
+        return False
+    return (imp.importerName.value(), imp.source.getModuleLabel()) in _replacedClusterImporters
+ 
+ 
 pfEHBlock = particleFlowBlock.clone(
-    # Replace the bare ECAL and HCAL cluster sources with the merged EH
-    # collection.  The elementImporters list controls which collections
-    # PFBlockAlgo reads; we keep everything except the bare ECAL/HCAL
-    # cluster importers and substitute a new EHCluster importer.
-    #
-    # In the standard particleFlowBlock the importers are:
-    #   [GSFTrackImporter, ConvBremTrackImporter, GeneralTracksImporter,
-    #    SuperClusterImporter, ECALClusterImporter, HCALClusterImporter, ...]
-    #
-    # We add an EHClusterImporter entry.  The existing ECAL and HCAL
-    # importers are kept so that the standard PF algorithm also runs
-    # unmodified in the same block job; downstream, PFEHCandidateProducer
-    # selects only the EH-type elements.
-    elementImporters = 
-        #  particleFlowBlock.elementImporters + [
-        [ imp for imp in particleFlowBlock.elementImporters
-        if imp.importerName.value() not in _excludedImporters] + [
+    elementImporters = [imp for imp in particleFlowBlock.elementImporters if not _isReplacedImporter(imp)] + [
+        # Re-add the ECAL importer, now sourced from the unmerged-ECAL
+        # filtered collection. NOTE: ECALClusterImporter also needs a
+        # BCtoPFCMap (SuperCluster <-> PFCluster association ValueMap) that
+        # is keyed off the *original* particleFlowClusterECAL collection.
+        # If SuperCluster matching against unmerged-only ECAL clusters turns
+        # out to behave differently than expected, that ValueMap is the
+        # first place to look.
+        cms.PSet(
+            importerName = cms.string("ECALClusterImporter"),
+            source       = cms.InputTag("pfEHClusterProducer", "unmergedECAL"),
+            BCtoPFCMap   = cms.InputTag("particleFlowSuperClusterECAL", "PFClusterAssociationEBEE"),
+        ),
+        cms.PSet(
+            importerName = cms.string("GenericClusterImporter"),
+            source       = cms.InputTag("pfEHClusterProducer", "unmergedHCAL"),
+        ),
+        cms.PSet(
+            importerName = cms.string("GenericClusterImporter"),
+            source       = cms.InputTag("pfEHClusterProducer", "unmergedHF"),
+        ),
+        cms.PSet(
+            importerName = cms.string("GenericClusterImporter"),
+            source       = cms.InputTag("pfEHClusterProducer", "unmergedHO"),
+        ),
+        # Merged EH clusters.
         cms.PSet(
             importerName = cms.string("EHClusterImporter"),
             source       = cms.InputTag("pfEHClusterProducer"),
-            #importerDef  = cms.PSet(),
-        )
+        ),
     ],
-
+ 
     # Append the new Track-EHCluster linker to the existing linker list.
     # PFBlockAlgo iterates over this list and calls each linker for every
     # pair of element types it handles.
-    # Append the KDTree-based Track-EHCluster linker.
-    # The linkerName must match DEFINE_EDM_PLUGIN in KDTreeLinkerTrackEH.cc.
-    # Parameters mirror the defaults of KDTreeLinkerTrackEcal (nSigmaECAL)
-    # and KDTreeLinkerTrackHcal (nSigmaHCAL, crystalSize*).
-    #linkDefinitions = particleFlowBlock.linkDefinitions + [
-    #    cms.PSet(
-    #        linkerName     = cms.string("KDTreeLinkerTrackAndEH"),
-    #        linkType       = cms.string("TRACK:EH"),
-    #        useKDTree      = cms.bool(True),
-    #        trajectoryLayerEntrance      = cms.double(True),
-    #  pset.addParameter<std::string>("trajectoryLayerEntrance", "HCALEntrance");
-    #  pset.addParameter<std::string>("trajectoryLayerExit", "HCALExit");
-    #  pset.addParameter<int>("nMaxHcalLinksPerTrack",
-    #    )
-    #],
+    #
+    # linkerName must match the DEFINE_EDM_PLUGIN registration in
+    # TrackAndEHClusterLinker.cc, i.e. "TrackAndEHClusterLinker" (NOT
+    # "KDTreeLinkerTrackAndEH"). When useKDTree=True, PFBlockAlgo looks up
+    # the companion KDTree linker under the name "KDTree" + linkerName, i.e.
+    # "KDTreeTrackAndEHClusterLinker" -- which matches the registration in
+    # KDTreeLinkerTrackEHCluster.cc. TrackAndEHClusterLinker itself only
+    # reads "useKDTree" (and an untracked "debug"); it hardcodes the HCAL
+    # entrance/exit trajectory points internally, so no
+    # trajectoryLayerEntrance/trajectoryLayerExit parameters are needed here.
+    linkDefinitions = particleFlowBlock.linkDefinitions + [
+        cms.PSet(
+            linkerName = cms.string("TrackAndEHClusterLinker"),
+            linkType   = cms.string("TRACK:EH"),
+            useKDTree  = cms.bool(True),
+            trajectoryLayerEntrance = cms.string("HCALEntrance"),
+            trajectoryLayerExit     = cms.string("HCALExit"),
+        ),
+    ],
 )
+
+
 
 # -----------------------------------------------------------------------
 # Step 3: create PFCandidates from the blocks.
@@ -115,6 +156,4 @@ particleFlowEHTask = cms.Task(
 )
 
 particleFlowEHCluster = cms.Sequence(particleFlowEHTask)
-
-
 

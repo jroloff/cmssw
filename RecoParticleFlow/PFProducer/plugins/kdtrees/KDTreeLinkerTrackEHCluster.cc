@@ -70,7 +70,23 @@ private:
 // construct it when calling the factory
 DEFINE_EDM_PLUGIN(KDTreeLinkerFactory, KDTreeLinkerTrackEHCluster, "KDTreeTrackAndEHClusterLinker");
 
-KDTreeLinkerTrackEHCluster::KDTreeLinkerTrackEHCluster(const edm::ParameterSet &conf) : KDTreeLinkerBase(conf) {}
+KDTreeLinkerTrackEHCluster::KDTreeLinkerTrackEHCluster(const edm::ParameterSet &conf)
+    : KDTreeLinkerBase(conf),
+      trajectoryLayerEntranceString_(conf.getParameter<std::string>("trajectoryLayerEntrance")),
+      trajectoryLayerExitString_(conf.getParameter<std::string>("trajectoryLayerExit")) {
+  // convert TrajectoryLayers info from string to enum
+  trajectoryLayerEntrance_ = reco::PFTrajectoryPoint::layerTypeByName(trajectoryLayerEntranceString_);
+  trajectoryLayerExit_ = reco::PFTrajectoryPoint::layerTypeByName(trajectoryLayerExitString_);
+  // make sure the requested setting is supported
+  assert((trajectoryLayerEntrance_ == reco::PFTrajectoryPoint::HCALEntrance &&
+          trajectoryLayerExit_ == reco::PFTrajectoryPoint::HCALExit) ||
+         (trajectoryLayerEntrance_ == reco::PFTrajectoryPoint::HCALEntrance &&
+          trajectoryLayerExit_ == reco::PFTrajectoryPoint::Unknown) ||
+         (trajectoryLayerEntrance_ == reco::PFTrajectoryPoint::VFcalEntrance &&
+          trajectoryLayerExit_ == reco::PFTrajectoryPoint::Unknown));
+  // flag if exit layer should be checked or not
+  checkExit_ = trajectoryLayerExit_ != reco::PFTrajectoryPoint::Unknown;
+}
 
 KDTreeLinkerTrackEHCluster::~KDTreeLinkerTrackEHCluster() { clear(); }
 

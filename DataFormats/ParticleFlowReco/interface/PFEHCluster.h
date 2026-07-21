@@ -100,6 +100,9 @@ namespace reco {
     // True when at least one cluster from each subdetector is present.
     bool isMatched() const { return !ecalClusters_.empty() && !hcalClusters_.empty(); }
 
+    int nClusters() const { return nEcalClusters() + nHcalClusters() + nHfClusters() + nHoClusters(); }
+     bool isMerged() const { return nClusters() > 1; }
+
     // ---------------------------------------------------------------- setters
     // (used by the producer after construction)
     void setRawEcalEnergy(double e) { rawEcalEnergy_ = e; }

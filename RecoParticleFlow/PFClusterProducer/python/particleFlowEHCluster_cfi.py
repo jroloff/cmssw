@@ -28,6 +28,9 @@ pfEHClusterProducer = cms.EDProducer(
     # Input PFCluster collections from the standard PF clustering sequence.
     ecalClusters = cms.InputTag("particleFlowClusterECAL"),
     hcalClusters = cms.InputTag("particleFlowClusterHCAL"),
+    hfClusters   = cms.InputTag("particleFlowClusterHF"),
+    hoClusters   = cms.InputTag("particleFlowClusterHO"),
+
 
     # Maximum dR in eta-phi between an ECAL and HCAL cluster for them to
     # be merged.  Corresponds roughly to 1.7 HCAL tower widths in the barrel.
@@ -57,9 +60,20 @@ from RecoParticleFlow.PFClusterProducer.particleFlowClusterHCAL_cff import (
     particleFlowClusterHCAL,
 )
 
+from RecoParticleFlow.PFClusterProducer.particleFlowClusterHF_cfi import (
+    particleFlowClusterHF,
+)
+from RecoParticleFlow.PFClusterProducer.particleFlowClusterHO_cfi import (
+    particleFlowClusterHO,
+)
+ 
+
+
 pfEHClusterTask = cms.Task(
     particleFlowClusterECAL,
     particleFlowClusterHCAL,
+    particleFlowClusterHF,
+    particleFlowClusterHO,
     pfEHClusterProducer,
 )
 

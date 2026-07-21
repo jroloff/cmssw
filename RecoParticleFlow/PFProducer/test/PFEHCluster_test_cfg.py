@@ -121,7 +121,7 @@ process.load("RecoParticleFlow.PFClusterProducer.particleFlowEHCluster_cff")
 # -----------------------------------------------------------------------
 process.RECOoutput.outputCommands.extend(cms.untracked.vstring(
         "keep recoPFCandidates_*_*_*",
-        "keep recoPFEHClusters_*_*_*",
+        "keep recoPFClusters_*_*_*",
         "keep recoPFEHClusters_*_*_*",
         "keep recoPFBlocks_*_*_*",
     ),)

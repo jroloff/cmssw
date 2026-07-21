@@ -70,6 +70,11 @@ private:
       const reco::PFClusterRefVector& hoClusters);
 
   const edm::EDPutTokenT<reco::PFEHClusterCollection> pfehClusterToken_;
+  const edm::EDPutTokenT<reco::PFClusterCollection> unmergedEcalToken_;
+  const edm::EDPutTokenT<reco::PFClusterCollection> unmergedHcalToken_;
+  const edm::EDPutTokenT<reco::PFClusterCollection> unmergedHfToken_;
+  const edm::EDPutTokenT<reco::PFClusterCollection> unmergedHoToken_;
+
   // ------------------------------------------------------------------ tokens
   const edm::EDGetTokenT<reco::PFClusterCollection> ecalToken_;
   const edm::EDGetTokenT<reco::PFClusterCollection> hcalToken_;
@@ -88,6 +93,10 @@ private:
 PFEHClusterProducer::PFEHClusterProducer(
     const edm::ParameterSet& iConfig)
     : pfehClusterToken_{produces<reco::PFEHClusterCollection>()},
+      unmergedEcalToken_{produces<reco::PFClusterCollection>("unmergedECAL")},
+      unmergedHcalToken_{produces<reco::PFClusterCollection>("unmergedHCAL")},
+      unmergedHfToken_{produces<reco::PFClusterCollection>("unmergedHF")},
+      unmergedHoToken_{produces<reco::PFClusterCollection>("unmergedHO")},
       ecalToken_(consumes<reco::PFClusterCollection>(
           iConfig.getParameter<edm::InputTag>("ecalClusters"))),
       hcalToken_(consumes<reco::PFClusterCollection>(
@@ -165,7 +174,14 @@ void PFEHClusterProducer::produce(edm::Event& iEvent,
 
   // --- output collection ----------------------------------------------------
   auto output = std::make_unique<reco::PFEHClusterCollection>();
-  output->reserve(nEcal);  // at most one SC per ECAL cluster
+  output->reserve(nEcal+nHcal + nHf + nHo); // At most, one cluster per cluster
+
+
+  auto unmergedEcalOut = std::make_unique<reco::PFClusterCollection>();
+  auto unmergedHcalOut = std::make_unique<reco::PFClusterCollection>();
+  auto unmergedHfOut = std::make_unique<reco::PFClusterCollection>();
+  auto unmergedHoOut = std::make_unique<reco::PFClusterCollection>();
+ 
 
   // --- ownership passes: each candidate collection assigned independently --
   std::vector<int> hcalAssignedTo, hfAssignedTo, hoAssignedTo;
@@ -202,6 +218,7 @@ void PFEHClusterProducer::produce(edm::Event& iEvent,
     for (const auto& href : hfRefs) eHf += href->energy();
     for (const auto& href : hoRefs) eHo += href->energy();
 
+    if(ecalRefs.size() + hcalRefs.size() + hfRefs.size() + hoRefs.size() <= 1) continue;
     reco::PFEHCluster ehClust(seedRef, ecalRefs, hcalRefs, hfRefs, hoRefs);
     ehClust.setRawEcalEnergy(eEcal);
     ehClust.setRawHcalEnergy(eHcal);
@@ -223,6 +240,7 @@ void PFEHClusterProducer::produce(edm::Event& iEvent,
   // Promote unmatched HCAL clusters.
   for (int iHcal = 0; iHcal < nHcal; ++iHcal) {
     if (hcalAssignedTo[iHcal] >= 0) continue;
+/*
     const auto& hcalClus = hcalClusters[iHcal];
 
     reco::PFClusterRef hRef(hcalHandle, iHcal);
@@ -236,11 +254,14 @@ void PFEHClusterProducer::produce(edm::Event& iEvent,
                                         hcalClus.position().y(),
                                         hcalClus.position().z()));
     output->push_back(std::move(ehClust));
+*/
+    unmergedHcalOut->push_back(hcalClusters[iHcal]);
   }
 
   // Promote unmatched HF clusters.
   for (int iHf = 0; iHf < nHf; ++iHf) {
     if (hfAssignedTo[iHf] >= 0) continue;
+/*
     const auto& hfClus = hfClusters[iHf];
 
     reco::PFClusterRef hRef(hfHandle, iHf);
@@ -253,11 +274,15 @@ void PFEHClusterProducer::produce(edm::Event& iEvent,
                                         hfClus.position().y(),
                                         hfClus.position().z()));
     output->push_back(std::move(ehClust));
+*/
+
+    unmergedHfOut->push_back(hfClusters[iHf]);
   }
 
   // Promote unmatched HO clusters.
   for (int iHo = 0; iHo < nHo; ++iHo) {
     if (hoAssignedTo[iHo] >= 0) continue;
+/*
     const auto& hoClus = hoClusters[iHo];
 
     reco::PFClusterRef hRef(hoHandle, iHo);
@@ -270,11 +295,14 @@ void PFEHClusterProducer::produce(edm::Event& iEvent,
                                         hoClus.position().y(),
                                         hoClus.position().z()));
     output->push_back(std::move(ehClust));
+*/
+    unmergedHoOut->push_back(hoClusters[iHo]);
   }
 
   // Keep unmatched ECAL-only clusters.
   for (int iEcal = 0; iEcal < nEcal; ++iEcal) {
     if (ecalUsed[iEcal]) continue;
+/*
     const auto& ecalClus = ecalClusters[iEcal];
 
     reco::PFClusterRef eRef(ecalHandle, iEcal);
@@ -288,6 +316,8 @@ void PFEHClusterProducer::produce(edm::Event& iEvent,
                                         ecalClus.position().y(),
                                         ecalClus.position().z()));
     output->push_back(std::move(ehClust));
+*/
+    unmergedEcalOut->push_back(ecalClusters[iEcal]);
   }
 
   LogDebug("PFEHClusterProducer")
@@ -296,6 +326,11 @@ void PFEHClusterProducer::produce(edm::Event& iEvent,
       << nHf << " HF, and " << nHo << " HO PFClusters.";
 
   iEvent.put(pfehClusterToken_, std::move(output));
+  iEvent.put(unmergedEcalToken_, std::move(unmergedEcalOut));
+  iEvent.put(unmergedHcalToken_, std::move(unmergedHcalOut));
+  iEvent.put(unmergedHfToken_, std::move(unmergedHfOut));
+  iEvent.put(unmergedHoToken_, std::move(unmergedHoOut));
+
 }
 
 // ============================================================================

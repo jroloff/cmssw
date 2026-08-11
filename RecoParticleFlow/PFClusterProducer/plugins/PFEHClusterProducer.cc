@@ -240,7 +240,6 @@ void PFEHClusterProducer::produce(edm::Event& iEvent,
   // Promote unmatched HCAL clusters.
   for (int iHcal = 0; iHcal < nHcal; ++iHcal) {
     if (hcalAssignedTo[iHcal] >= 0) continue;
-/*
     const auto& hcalClus = hcalClusters[iHcal];
 
     reco::PFClusterRef hRef(hcalHandle, iHcal);
@@ -254,8 +253,8 @@ void PFEHClusterProducer::produce(edm::Event& iEvent,
                                         hcalClus.position().y(),
                                         hcalClus.position().z()));
     output->push_back(std::move(ehClust));
-*/
-    unmergedHcalOut->push_back(hcalClusters[iHcal]);
+// Jenn: Fix this, but just for testing
+    //unmergedHcalOut->push_back(hcalClusters[iHcal]);
   }
 
   // Promote unmatched HF clusters.

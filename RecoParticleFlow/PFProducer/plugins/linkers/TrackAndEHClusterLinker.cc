@@ -82,11 +82,11 @@ double TrackAndEHClusterLinker::testLinkECal(const reco::PFBlockElement* elem1,
   // Check if the linking has been done using the KDTree algo
   // Glowinski & Gouzevitch
   if (useKDTree_ && ehElem->isMultilinksValidEH(reco::PFBlockElement::TRACK)) {  //KDTree Algo
-    const reco::PFMultilinksType& multilinks = ehElem->getMultilinksEH(reco::PFBlockElement::TRACK);
+    const reco::PFEHMultilinksType& multilinks = ehElem->getMultilinksEH(reco::PFBlockElement::TRACK);
     const double tracketa = tkAtECAL.positionREP().Eta();
     const double trackphi = tkAtECAL.positionREP().Phi();
     // Check if the link Track/Ecal exist
-    reco::PFMultilinksType::const_iterator mlit = multilinks.begin();
+    reco::PFEHMultilinksType::const_iterator mlit = multilinks.begin();
     for (; mlit != multilinks.end(); ++mlit)
       if (mlit->trackRef == trackref)
         break;
@@ -152,10 +152,10 @@ double TrackAndEHClusterLinker::testLinkHCal(const reco::PFBlockElement* elem1,
   // Check if the linking has been done using the KDTree algo
   // Glowinski & Gouzevitch
   if (useKDTree_ && ehElem->isMultilinksValidEH(reco::PFBlockElement::TRACK)) {  //KDTree Algo
-    const reco::PFMultilinksType& multilinks = ehElem->getMultilinksEH(reco::PFBlockElement::TRACK);
+    const reco::PFEHMultilinksType& multilinks = ehElem->getMultilinksEH(reco::PFBlockElement::TRACK);
 
     // Check if the link Track/Hcal exist
-    reco::PFMultilinksType::const_iterator mlit = multilinks.begin();
+    reco::PFEHMultilinksType::const_iterator mlit = multilinks.begin();
     for (; mlit != multilinks.end(); ++mlit)
       if (mlit->trackRef == trackref)
         break;
@@ -237,12 +237,14 @@ double TrackAndEHClusterLinker::testLink(const reco::PFBlockElement* elem1, cons
 
   double dist = -1.;
 
+/*
   for (auto eclus : pfehcluster->ecalClusters()) {
     if (eclus.isNull()) continue;
     reco::PFBlockElementCluster ecalBlockElem(eclus, reco::PFBlockElement::ECAL);
     double newdist = testLinkECal(tkelem, &ecalBlockElem, ehclustelem);
     if (newdist >= 0. && (dist < 0. || newdist < dist)) dist = newdist;
   }
+*/
 
   for (auto hclus : pfehcluster->hcalClusters()) {
     if (hclus.isNull()) continue;
@@ -251,12 +253,14 @@ double TrackAndEHClusterLinker::testLink(const reco::PFBlockElement* elem1, cons
     if (newdist >= 0. && (dist < 0. || newdist < dist)) dist = newdist;
   }
 
+/*
   for (auto oclus : pfehcluster->hoClusters()) {
     if (oclus.isNull()) continue;
     reco::PFBlockElementCluster hoBlockElem(oclus, reco::PFBlockElement::HO);
     double newdist = testLinkHO(tkelem, &hoBlockElem);
     if (newdist >= 0. && (dist < 0. || newdist < dist)) dist = newdist;
   }
+*/
 
   return dist;
 }

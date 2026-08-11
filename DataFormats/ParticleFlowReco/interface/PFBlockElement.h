@@ -136,7 +136,7 @@ namespace reco {
         return false;  // no multilinks_ for the specified type
     }
     const PFMultilinksType& getMultilinks(Type type) const { return multilinks_.at(type).linkedPFObjects; }
-    const PFMultilinksType& getMultilinksEH(Type type) const { return multilinksEH_.at(type).linkedPFObjects; }
+    const PFEHMultilinksType& getMultilinksEH(Type type) const { return multilinksEH_.at(type).linkedPFObjects; }
     // ! Glowinski & Gouzevitch
 
     /// do we have a valid time information

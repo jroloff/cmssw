@@ -261,6 +261,14 @@ void PFBlockProducer::fillDescriptions(edm::ConfigurationDescriptions& descripti
       vpset.emplace_back(pset);
     }
     {
+     edm::ParameterSet pset;
+     pset.addParameter<std::string>("linkerName", "ECALAndEHClusterLinker");
+     pset.addParameter<std::string>("linkType", "ECAL:EH");
+     pset.addParameter<double>("minAbsEtaEcal", 2.5);
+     pset.addParameter<bool>("useKDTree", false);
+     vpset.emplace_back(pset);
+    }
+    {
       edm::ParameterSet pset;
       pset.addParameter<std::string>("linkerName", "HCALAndHOLinker");
       pset.addParameter<std::string>("linkType", "HCAL:HO");

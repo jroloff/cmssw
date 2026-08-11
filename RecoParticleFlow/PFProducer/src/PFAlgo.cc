@@ -154,7 +154,11 @@ void PFAlgo::reconstructParticles(const reco::PFBlockHandle& blockHandle, PFEGam
         ecalBlockRefs.push_back(blockref);
         singleEcalOrHcal = true;
       }
-      if (elements[0].type() == reco::PFBlockElement::HCAL) {
+      if (elements[0].type() == reco::PFBlockElement::EH) {
+        // PFBlockElement::HCAL elements have been replaced by
+        // PFBlockElement::EH elements (carrying a PFEHClusterRef, mixed
+        // ECAL+HCAL or pure HCAL) -- this list still plays exactly the
+        // same role as the old "single HCAL block" list.
         hcalBlockRefs.push_back(blockref);
         singleEcalOrHcal = true;
       }
@@ -973,20 +977,20 @@ void PFAlgo::relinkTrackToHcal(const reco::PFBlock& block,
       continue;
     LogTrace("PFAlgo|elementLoop") << "  track " << jTrack << " with closest ECAL identical ";
 
-    // Check if this track is also linked to an HCAL
+    // Check if this track is also linked to an HCAL (now: EH) cluster
     std::multimap<double, unsigned> sortedHCAL;
-    block.associatedElements(jTrack, linkData, sortedHCAL, reco::PFBlockElement::HCAL, reco::PFBlock::LINKTEST_ALL);
+    block.associatedElements(jTrack, linkData, sortedHCAL, reco::PFBlockElement::EH, reco::PFBlock::LINKTEST_ALL);
     if (sortedHCAL.empty())
       continue;
-    LogTrace("PFAlgo|elementLoop") << "  and with an HCAL cluster " << sortedHCAL.begin()->second;
+    LogTrace("PFAlgo|elementLoop") << "  and with an HCAL (EH) cluster " << sortedHCAL.begin()->second;
 
     // In that case establish a link with the first track
     block.setLink(iTrack, sortedHCAL.begin()->second, sortedECAL.begin()->first, linkData, PFBlock::LINKTEST_RECHIT);
 
   }  // End other tracks
 
-  // Redefine HCAL elements
-  block.associatedElements(iTrack, linkData, hcalElems, reco::PFBlockElement::HCAL, reco::PFBlock::LINKTEST_ALL);
+  // Redefine HCAL (EH) elements
+  block.associatedElements(iTrack, linkData, hcalElems, reco::PFBlockElement::EH, reco::PFBlock::LINKTEST_ALL);
 
   if (!hcalElems.empty())
     LogTrace("PFAlgo|elementLoop") << "Track linked back to HCAL due to ECAL sharing with other tracks";
@@ -1038,7 +1042,7 @@ void PFAlgo::elementLoop(const reco::PFBlock& block,
     block.associatedElements(iEle, linkData, ecalElems, reco::PFBlockElement::ECAL, reco::PFBlock::LINKTEST_ALL);
 
     std::multimap<double, unsigned> hcalElems;
-    block.associatedElements(iEle, linkData, hcalElems, reco::PFBlockElement::HCAL, reco::PFBlock::LINKTEST_ALL);
+    block.associatedElements(iEle, linkData, hcalElems, reco::PFBlockElement::EH, reco::PFBlock::LINKTEST_ALL);
 
     std::multimap<double, unsigned> hfEmElems;
     std::multimap<double, unsigned> hfHadElems;
@@ -1142,9 +1146,9 @@ void PFAlgo::elementLoop(const reco::PFBlock& block,
       double dist = block.dist(iEle, index, linkData, reco::PFBlock::LINKTEST_ALL);
       LogTrace("PFAlgo|elementLoop") << "\telement " << elements[index] << " linked with distance " << dist;
 #endif
-      assert(type == PFBlockElement::HCAL);
+      assert(type == PFBlockElement::EH);
 
-      // all hcal clusters except the closest
+      // all hcal (EH) clusters except the closest
       // will be unlinked from the track
       if (!hcalFound) {  // closest hcal
         LogTrace("PFAlgo|elementLoop") << "\t\tclosest hcal cluster, doing nothing";
@@ -1215,16 +1219,35 @@ int PFAlgo::decideType(const edm::OwnVector<reco::PFBlockElement>& elements,
         LogTrace("PFAlgo|decideType") << "ECAL, stored index, continue";
       }
       return 1;  //continue
-    case PFBlockElement::HCAL:
+    case PFBlockElement::EH:
+      // PFBlockElement::HCAL has been replaced by PFBlockElement::EH,
+      // carrying a PFEHClusterRef (mixed ECAL+HCAL, or pure HCAL). We still
+      // only care about it here as "the HCAL-bearing element"; inds.hcalIs
+      // keeps its name for minimal downstream churn but now holds indices
+      // of EH elements.
       if (active[iEle]) {
-        if (elements[iEle].clusterRef()->flags() & reco::CaloCluster::badHcalMarker) {
-          LogTrace("PFAlgo|decideType") << "HCAL DEAD AREA: remember and skip.";
+        const reco::PFEHClusterRef& ehRef = elements[iEle].ehClusterRef();
+        // The dead-HCAL-channel marker is set per HCAL PFCluster, not on
+        // the merged PFEHCluster itself (PFEHCluster does not propagate
+        // CaloCluster flags from its constituents). Check the HCAL
+        // constituent(s) explicitly, so a dead-area EH cluster is still
+        // correctly flagged and skipped exactly as a plain dead HCAL
+        // PFCluster was before.
+        bool hasDeadHcalConstituent = false;
+        for (auto const& hcalConstituent : ehRef->hcalClusters()) {
+          if (hcalConstituent->flags() & reco::CaloCluster::badHcalMarker) {
+            hasDeadHcalConstituent = true;
+            break;
+          }
+        }
+        if (hasDeadHcalConstituent) {
+          LogTrace("PFAlgo|decideType") << "HCAL DEAD AREA (in EH cluster): remember and skip.";
           active[iEle] = false;
           deadArea[iEle] = true;
           return 1;  //continue
         }
         inds.hcalIs.push_back(iEle);
-        LogTrace("PFAlgo|decideType") << "HCAL, stored index, continue";
+        LogTrace("PFAlgo|decideType") << "EH (HCAL-bearing), stored index, continue";
       }
       return 1;  //continue
     case PFBlockElement::HO:
@@ -1712,7 +1735,7 @@ void PFAlgo::createCandidatesHCAL(const reco::PFBlock& block,
   for (unsigned iHcal : inds.hcalIs) {
     PFBlockElement::Type type = elements[iHcal].type();
 
-    assert(type == PFBlockElement::HCAL);
+    assert(type == PFBlockElement::EH);
 
     LogTrace("PFAlgo|createCandidatesHCAL") << "elements[" << iHcal << "]=" << elements[iHcal];
 
@@ -1734,7 +1757,16 @@ void PFAlgo::createCandidatesHCAL(const reco::PFBlock& block,
 
     std::multimap<unsigned, std::pair<double, unsigned>> associatedHOs;
 
-    PFClusterRef hclusterref = elements[iHcal].clusterRef();
+    // PFEHCluster replaces the plain HCAL PFCluster: it may be a pure-HCAL
+    // cluster or a merge of one ECAL cluster with HCAL cluster(s) (see
+    // PFEHCluster.h).
+    reco::PFEHClusterRef ehclusterref = elements[iHcal].ehClusterRef();
+    assert(!ehclusterref.isNull());
+    // Use the (highest-energy) HCAL constituent for all position/geometry/
+    // depth information below, since PFEHCluster does not expose these
+    // directly for the merged object, and its own seed() may instead be an
+    // ECAL constituent (see ehHcalSeed()).
+    PFClusterRef hclusterref = ehHcalSeed(ehclusterref);
     assert(!hclusterref.isNull());
 
     //if there is no track attached to that HCAL, then do not
@@ -1764,7 +1796,35 @@ void PFAlgo::createCandidatesHCAL(const reco::PFBlock& block,
     double totalHO = 0.;
     double totalEcal = 0.;
     double totalEcalEGMCalib = 0.;
-    double totalHcal = hclusterref->energy();
+    // Raw hadronic (HCAL-only) energy of the merged PFEH cluster -- no
+    // hadronic calibration applied here, exactly as for a plain HCAL
+    // PFCluster before this change.
+    double totalHcal = ehHcalEnergy(ehclusterref);
+
+/*
+    // If this PFEH cluster is a genuine ECAL+HCAL merge, fold its ECAL
+    // component in as another ECAL satellite of the HCAL cluster, at EM
+    // scale (see 
+    // calibration is not yet implemented, so this is explicitly a
+    // pass-through of the raw/EM-scale value for now). Using the existing
+    // ecalSatellites bookkeeping means this merged-in ECAL energy goes
+    // through exactly the same distance-ordered satellite-merging and
+    // photon-splitting logic as a genuinely separate, linked ECAL
+    // PFBlockElement would -- i.e. the splitting logic itself is unchanged.
+    const double ehEcalEM = ehEcalEnergyAtEMScale(ehclusterref);
+    if (ehEcalEM > 0.) {
+      ::math::XYZVector ehEcalDirection(
+          hclusterref->position().X(), hclusterref->position().Y(), hclusterref->position().Z());
+      ehEcalDirection = ehEcalDirection.Unit();
+      // calibFactor = 1: the merged ECAL component is used at EM scale
+      // until PFEHCluster ECAL calibration is implemented upstream (see
+      // ehEcalEnergyAtEMScale()). There is no separate PFBlockElement to
+      // lock for it, so -- like the fakeSatellite above -- it is tagged
+      // with iHcal's own index.
+      std::tuple<unsigned, ::math::XYZVector, double> ehSatellite(iHcal, ehEcalEM * ehEcalDirection, 1.);
+      ecalSatellites.emplace(-1., ehSatellite);
+    }
+*/
     vector<double> hcalP;
     vector<double> hcalDP;
     vector<unsigned> tkIs;
@@ -2885,9 +2945,9 @@ void PFAlgo::createCandidatesHCALUnlinked(const reco::PFBlock& block,
       // or add an helper function to the PFAlgo class to ask
       // if a given element is the closest of a given type to another one?
 
-      // Check if not closer from another free HCAL
+      // Check if not closer from another free HCAL (EH) cluster
       std::multimap<double, unsigned> hcalElems;
-      block.associatedElements(iEcal, linkData, hcalElems, reco::PFBlockElement::HCAL, reco::PFBlock::LINKTEST_ALL);
+      block.associatedElements(iEcal, linkData, hcalElems, reco::PFBlockElement::EH, reco::PFBlock::LINKTEST_ALL);
 
       const bool isClosest = std::none_of(hcalElems.begin(), hcalElems.end(), [&](auto const& hcal) {
         return active[hcal.second] && hcal.first < dist;
@@ -2945,9 +3005,9 @@ void PFAlgo::createCandidatesHCALUnlinked(const reco::PFBlock& block,
         // Check the distance (one HCALPlusHO tower, roughly)
         // if ( dist > 0.15 ) continue;
 
-        // Check if not closer from another free HCAL
+        // Check if not closer from another free HCAL (EH) cluster
         std::multimap<double, unsigned> hcalElems;
-        block.associatedElements(iHO, linkData, hcalElems, reco::PFBlockElement::HCAL, reco::PFBlock::LINKTEST_ALL);
+        block.associatedElements(iHO, linkData, hcalElems, reco::PFBlockElement::EH, reco::PFBlock::LINKTEST_ALL);
 
         const bool isClosest = std::none_of(hcalElems.begin(), hcalElems.end(), [&](auto const& hcal) {
           return active[hcal.second] && hcal.first < dist;
@@ -2983,11 +3043,23 @@ void PFAlgo::createCandidatesHCALUnlinked(const reco::PFBlock& block,
       }  // End loop HO
     }
 
-    PFClusterRef hclusterRef = elements[iHcal].clusterRef();
+    // PFEHCluster replaces the plain HCAL PFCluster here too.
+    reco::PFEHClusterRef ehclusterRef = elements[iHcal].ehClusterRef();
+    assert(!ehclusterRef.isNull());
+    // Position/geometry/layer still come from the HCAL constituent (see
+    // ehHcalSeed()), exactly as in createCandidatesHCAL() above.
+    PFClusterRef hclusterRef = ehHcalSeed(ehclusterRef);
     assert(!hclusterRef.isNull());
 
-    // HCAL energy
-    double totalHcal = hclusterRef->energy();
+    // HCAL energy: raw hadronic (HCAL-only) component of the merged PFEH
+    // cluster. No hadronic calibration applied, same as before.
+    double totalHcal = ehHcalEnergy(ehclusterRef);
+    // Fold in the ECAL component carried inside the PFEH cluster itself
+    // (present for mixed EH clusters, zero for HCAL-only ones), at EM scale
+    // (see ehEcalEnergyAtEMScale() -- calibration not yet implemented,
+    // explicit pass-through for now), on top of whatever separately-linked
+    // ECAL PFBlockElements were already summed into totalEcal above.
+    ///////////////////////////////totalEcal += ehEcalEnergyAtEMScale(ehclusterRef);
     // Include the HO energy
     if (useHO_)
       totalHcal += totalHO;
@@ -3340,6 +3412,38 @@ unsigned PFAlgo::reconstructCluster(const reco::PFCluster& cluster,
 
   // returns index to the newly created PFCandidate
   return pfCandidates_.size() - 1;
+}
+
+double PFAlgo::ehEcalEnergyAtEMScale(const reco::PFEHClusterRef& eh) const {
+  if (eh.isNull() || eh->rawEcalEnergy() <= 0.)
+    return 0.;
+  // TODO(PFEHCluster ECAL calibration): rawEcalEnergy() is documented in
+  // PFEHCluster.h as raw/uncalibrated, so no reversion is needed today and
+  // this is a plain pass-through. Once an ECAL-in-PFEHCluster calibration is
+  // implemented upstream (i.e. rawEcalEnergy() starts returning a calibrated
+  // scale), the calibrated -> EM-scale conversion must be inserted here,
+  // e.g. something like:
+  //     return calibration_.revertEcalToEMScale(eh->rawEcalEnergy(), eh->eta(), eh->phi());
+  // For now, we return the raw value unchanged, made explicit rather than
+  // silently assumed.
+  return eh->rawEcalEnergy();
+}
+
+reco::PFClusterRef PFAlgo::ehHcalSeed(const reco::PFEHClusterRef& eh) const {
+  const reco::PFClusterRefVector& hcalConstituents = eh->hcalClusters();
+  if (hcalConstituents.empty()) {
+    // Should not happen for EH elements that were classified as HCAL-bearing
+    // (see decideType()), but fall back defensively to the cluster's own
+    // seed rather than dereferencing a null ref.
+    edm::LogWarning("PFAlgo|ehHcalSeed") << "PFEHCluster has no HCAL constituents; falling back to seed()";
+    return eh->seed();
+  }
+  reco::PFClusterRef best = hcalConstituents[0];
+  for (auto const& hcalConstituent : hcalConstituents) {
+    if (hcalConstituent->energy() > best->energy())
+      best = hcalConstituent;
+  }
+  return best;
 }
 
 void PFAlgo::setHcalDepthInfo(reco::PFCandidate& cand, const reco::PFCluster& cluster) const {

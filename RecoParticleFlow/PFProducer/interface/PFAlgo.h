@@ -15,6 +15,8 @@
 #include "DataFormats/ParticleFlowReco/interface/PFBlockElement.h"
 #include "DataFormats/ParticleFlowReco/interface/PFRecHitFwd.h"
 #include "DataFormats/ParticleFlowReco/interface/PFClusterFwd.h"
+#include "DataFormats/ParticleFlowReco/interface/PFEHCluster.h"
+#include "DataFormats/ParticleFlowReco/interface/PFEHClusterFwd.h"
 #include "DataFormats/ParticleFlowReco/interface/PFRecTrackFwd.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
@@ -220,6 +222,28 @@ private:
                               double particleZ = 0.);
 
   void setHcalDepthInfo(reco::PFCandidate& cand, const reco::PFCluster& cluster) const;
+
+  /// Raw hadronic (HCAL-only) energy of a PFEH cluster
+  static double ehHcalEnergy(const reco::PFEHClusterRef& eh) { return eh->rawHcalEnergy(); }
+
+  /// The ECAL component merged into a PFEH cluster (zero for HCAL-only
+  /// clusters), expressed at EM scale.
+  ///
+  /// IMPORTANT / explicit TODO: calibration of the ECAL component carried
+  /// inside a PFEHCluster is NOT YET IMPLEMENTED upstream. PFEHCluster.h
+  /// documents rawEcalEnergy() as a raw, uncalibrated sum. This function is
+  /// therefore currently a pass-through of rawEcalEnergy(), and is
+  /// deliberately kept as the single, explicit place where a future
+  /// calibration would need to be reverted back down to EM scale before
+  /// being handed to the HCAL splitting/photon logic below -- i.e. once a
+  /// calibrated-scale rawEcalEnergy() exists, the conversion back to EM
+  /// scale belongs here, not scattered through createCandidatesHCAL().
+  double ehEcalEnergyAtEMScale(const reco::PFEHClusterRef& eh) const;
+
+  /// Returns the constituent HCAL PFClusterRef to use whenever legacy code
+  /// needs a real single-cluster reco::PFCluster (position(), positionREP(),
+  /// layer(), recHitFractions() for depth info, etc.)
+  reco::PFClusterRef ehHcalSeed(const reco::PFEHClusterRef& eh) const;
 
   /// todo: use PFClusterTools for this
   double neutralHadronEnergyResolution(double clusterEnergy, double clusterEta) const;

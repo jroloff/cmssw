@@ -19,11 +19,11 @@ namespace reco {
     reco::PFEHClusterRef clusterRef;
   };
   /// collection of PFSuperCluster objects
-  //typedef std::vector<PFMultilink> PFMultilinksType;
+  typedef std::vector<PFEHMultilink> PFEHMultilinksType;
   class PFMultiLinksTEHC {
   public:
     bool isValid;
-    PFMultilinksType linkedPFObjects;
+    PFEHMultilinksType linkedPFObjects;
 
   public:
     PFMultiLinksTEHC(bool isvalid = false) : isValid(isvalid) {}

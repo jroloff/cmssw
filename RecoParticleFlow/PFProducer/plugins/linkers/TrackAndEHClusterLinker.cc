@@ -50,9 +50,14 @@ bool TrackAndEHClusterLinker::linkPrefilter(const reco::PFBlockElement* elem1,
   // Multilinks are recorded EH-side (list of tracks, keyed by TRACK) and
   // track-side (validity flag only, keyed by EH) -- see
   // KDTreeLinkerTrackEHCluster::updatePFBlockEltWithLinks().
+/*
   return ehElem->isMultilinksValidEH(reco::PFBlockElement::TRACK) &&
          !ehElem->getMultilinksEH(reco::PFBlockElement::TRACK).empty() &&
          tkElem->isMultilinksValidEH(reco::PFBlockElement::EH);
+*/
+  return tkElem->isMultilinksValidEH(reco::PFBlockElement::EH) &&
+         !tkElem->getMultilinksEH(reco::PFBlockElement::EH).empty() &&
+         ehElem->isMultilinksValidEH(reco::PFBlockElement::TRACK);
 }
 
 // It would be better to use the official functions, but this seems a bit annoying for what I want to implement at the moment
@@ -81,14 +86,20 @@ double TrackAndEHClusterLinker::testLinkECal(const reco::PFBlockElement* elem1,
 
   // Check if the linking has been done using the KDTree algo
   // Glowinski & Gouzevitch
-  if (useKDTree_ && ehElem->isMultilinksValidEH(reco::PFBlockElement::TRACK)) {  //KDTree Algo
-    const reco::PFEHMultilinksType& multilinks = ehElem->getMultilinksEH(reco::PFBlockElement::TRACK);
+//  if (useKDTree_ && ehElem->isMultilinksValidEH(reco::PFBlockElement::TRACK)) {  //KDTree Algo
+//    const reco::PFEHMultilinksType& multilinks = ehElem->getMultilinksEH(reco::PFBlockElement::TRACK);
+
+
+  if (useKDTree_ && tkelem->isMultilinksValidEH(reco::PFBlockElement::EH)) {  //KDTree Algo
+    const reco::PFEHClusterRef& ehref = static_cast<const reco::PFBlockElementEHCluster*>(ehElem)->ehClusterRef();
+    const reco::PFEHMultilinksType& multilinks = tkelem->getMultilinksEH(reco::PFBlockElement::EH);
     const double tracketa = tkAtECAL.positionREP().Eta();
     const double trackphi = tkAtECAL.positionREP().Phi();
     // Check if the link Track/Ecal exist
     reco::PFEHMultilinksType::const_iterator mlit = multilinks.begin();
     for (; mlit != multilinks.end(); ++mlit)
-      if (mlit->trackRef == trackref)
+      //if (mlit->trackRef == trackref)
+      if (mlit->clusterRef == ehref)
         break;
 
     // If the link exist, we fill dist and linktest.
@@ -151,13 +162,19 @@ double TrackAndEHClusterLinker::testLinkHCal(const reco::PFBlockElement* elem1,
   }
   // Check if the linking has been done using the KDTree algo
   // Glowinski & Gouzevitch
-  if (useKDTree_ && ehElem->isMultilinksValidEH(reco::PFBlockElement::TRACK)) {  //KDTree Algo
-    const reco::PFEHMultilinksType& multilinks = ehElem->getMultilinksEH(reco::PFBlockElement::TRACK);
+  //  if (useKDTree_ && ehElem->isMultilinksValidEH(reco::PFBlockElement::TRACK)) {  //KDTree Algo
+    //  const reco::PFEHMultilinksType& multilinks = ehElem->getMultilinksEH(reco::PFBlockElement::TRACK);
+
+ if (useKDTree_ && tkelem->isMultilinksValidEH(reco::PFBlockElement::EH)) {  //KDTree Algo
+    const reco::PFEHClusterRef& ehref = static_cast<const reco::PFBlockElementEHCluster*>(ehElem)->ehClusterRef();
+    const reco::PFEHMultilinksType& multilinks = tkelem->getMultilinksEH(reco::PFBlockElement::EH);
+
 
     // Check if the link Track/Hcal exist
     reco::PFEHMultilinksType::const_iterator mlit = multilinks.begin();
     for (; mlit != multilinks.end(); ++mlit)
-      if (mlit->trackRef == trackref)
+      //if (mlit->trackRef == trackref)
+      if (mlit->clusterRef == ehref)
         break;
 
     // If the link exist, we fill dist and linktest.

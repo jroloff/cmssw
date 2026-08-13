@@ -315,7 +315,7 @@ bool PFEGammaFilters::isElectronSafeForJetMET(const reco::GsfElectron& electron,
         // Check if these extra tracks are HCAL linked
         std::multimap<double, unsigned int> hcalKfElems;
         block.associatedElements(
-            itrk->second, linkData, hcalKfElems, reco::PFBlockElement::HCAL, reco::PFBlock::LINKTEST_ALL);
+            itrk->second, linkData, hcalKfElems, reco::PFBlockElement::EH, reco::PFBlock::LINKTEST_ALL);
         if (!hcalKfElems.empty()) {
           itrackHcalLinked++;
         }

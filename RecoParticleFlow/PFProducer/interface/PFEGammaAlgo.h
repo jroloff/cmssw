@@ -13,6 +13,7 @@
 #include "DataFormats/ParticleFlowReco/interface/PFBlockFwd.h"
 #include "DataFormats/ParticleFlowReco/interface/PFBlock.h"
 #include "DataFormats/ParticleFlowReco/interface/PFCluster.h"
+#include "DataFormats/ParticleFlowReco/interface/PFEHCluster.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidatePhotonExtra.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidatePhotonExtraFwd.h"
@@ -26,6 +27,7 @@
 #include "DataFormats/ParticleFlowReco/interface/PFBlockElementSuperCluster.h"
 #include "DataFormats/ParticleFlowReco/interface/PFBlockElementBrem.h"
 #include "DataFormats/ParticleFlowReco/interface/PFBlockElementCluster.h"
+#include "DataFormats/ParticleFlowReco/interface/PFBlockElementEHCluster.h"
 #include "DataFormats/ParticleFlowReco/interface/PFBlockElementGsfTrack.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
@@ -67,6 +69,7 @@ public:
   typedef reco::PFBlockElementGsfTrack PFGSFElement;
   typedef reco::PFBlockElementTrack PFKFElement;
   typedef reco::PFBlockElementCluster PFClusterElement;
+  typedef reco::PFBlockElementEHCluster PFEHClusterElement;
   typedef std::unordered_map<const PFKFElement*, float> KFValMap;
 
   using ClusterMap = std::unordered_map<PFClusterElement const*, std::vector<PFClusterElement const*>>;
@@ -100,6 +103,7 @@ public:
     KFValMap singleLegConversionMvaMap;
     // for track-HCAL cluster linking
     std::vector<PFClusterElement const*> hcalClusters;
+    std::vector<PFEHClusterElement const*> ehClusters;
     CommutativePairs<const reco::PFBlockElement*> localMap;
     // cluster closest to the gsf track(s), primary kf if none for gsf
     // last brem tangent cluster if neither of those work
@@ -166,6 +170,7 @@ private:
                           std::vector<FlaggedPtr<const PFClusterElement>>&,
                           ClusterMap&);
 
+
   int attachPSClusters(const PFClusterElement*, ClusterMap::mapped_type&);
 
   void dumpCurrentRefinableObjects() const;
@@ -218,12 +223,16 @@ private:
 
   bool isPrimaryTrack(const reco::PFBlockElementTrack& KfEl, const reco::PFBlockElementGsfTrack& GsfEl);
 
+  static double hcalElementEnergy(const reco::PFBlockElement*);
+
   PFEGConfigInfo const& cfg_;
   reco::Vertex const& primaryVertex_;
 
   ESChannelStatus const& channelStatus_;
 
   float evaluateSingleLegMVA(const reco::PFBlockRef& blockref, const reco::Vertex& primaryVtx, unsigned int trackIndex);
+
+  std::vector<const reco::PFBlockElement*> hcalClusters;
 };
 
 #endif

@@ -16,7 +16,23 @@ public:
   TrackAndEHClusterLinker(const edm::ParameterSet& conf)
       : BlockElementLinkerBase(conf),
         useKDTree_(conf.getParameter<bool>("useKDTree")),
-        debug_(conf.getUntrackedParameter<bool>("debug", false)) {}
+        trajectoryLayerEntranceString_(conf.getParameter<std::string>("trajectoryLayerEntrance")),
+        trajectoryLayerExitString_(conf.getParameter<std::string>("trajectoryLayerExit")),
+        debug_(conf.getUntrackedParameter<bool>("debug", false)) {
+    // convert TrajectoryLayers info from string to enum
+    trajectoryLayerEntrance_ = reco::PFTrajectoryPoint::layerTypeByName(trajectoryLayerEntranceString_);
+    trajectoryLayerExit_ = reco::PFTrajectoryPoint::layerTypeByName(trajectoryLayerExitString_);
+    // make sure the requested setting is supported
+    assert((trajectoryLayerEntrance_ == reco::PFTrajectoryPoint::HCALEntrance &&
+            trajectoryLayerExit_ == reco::PFTrajectoryPoint::HCALExit) ||
+           (trajectoryLayerEntrance_ == reco::PFTrajectoryPoint::HCALEntrance &&
+            trajectoryLayerExit_ == reco::PFTrajectoryPoint::Unknown) ||
+           (trajectoryLayerEntrance_ == reco::PFTrajectoryPoint::VFcalEntrance &&
+            trajectoryLayerExit_ == reco::PFTrajectoryPoint::Unknown));
+    // flag if exit layer should be checked or not
+    checkExit_ = trajectoryLayerExit_ != reco::PFTrajectoryPoint::Unknown;
+  }
+
 
   bool linkPrefilter(const reco::PFBlockElement*, const reco::PFBlockElement*) const;
 
@@ -24,18 +40,20 @@ public:
   // the multilinks recorded by KDTreeLinkerTrackEHCluster. clusterElem is the
   // synthetic per-constituent element (type ECAL/HCAL/HO) built from one ref
   // inside the EH cluster.
-  double testLinkECal(const reco::PFBlockElement* tkelem,
-                       const reco::PFBlockElement* clusterElem,
-                       const reco::PFBlockElement* ehElem) const;
   double testLinkHCal(const reco::PFBlockElement* tkelem,
                        const reco::PFBlockElement* clusterElem,
                        const reco::PFBlockElement* ehElem) const;
-  double testLinkHO(const reco::PFBlockElement* tkelem, const reco::PFBlockElement* clusterElem) const;
 
   double testLink(const reco::PFBlockElement*, const reco::PFBlockElement*) const;
 
 private:
-  const bool useKDTree_, debug_;
+  bool useKDTree_;
+  std::string trajectoryLayerEntranceString_;
+  std::string trajectoryLayerExitString_;
+  reco::PFTrajectoryPoint::LayerType trajectoryLayerEntrance_;
+  reco::PFTrajectoryPoint::LayerType trajectoryLayerExit_;
+  bool debug_;
+  bool checkExit_;
 };
 
 DEFINE_EDM_PLUGIN(BlockElementLinkerFactory, TrackAndEHClusterLinker, "TrackAndEHClusterLinker");
@@ -50,76 +68,9 @@ bool TrackAndEHClusterLinker::linkPrefilter(const reco::PFBlockElement* elem1,
   // Multilinks are recorded EH-side (list of tracks, keyed by TRACK) and
   // track-side (validity flag only, keyed by EH) -- see
   // KDTreeLinkerTrackEHCluster::updatePFBlockEltWithLinks().
-/*
-  return ehElem->isMultilinksValidEH(reco::PFBlockElement::TRACK) &&
-         !ehElem->getMultilinksEH(reco::PFBlockElement::TRACK).empty() &&
-         tkElem->isMultilinksValidEH(reco::PFBlockElement::EH);
-*/
   return tkElem->isMultilinksValidEH(reco::PFBlockElement::EH) &&
          !tkElem->getMultilinksEH(reco::PFBlockElement::EH).empty() &&
          ehElem->isMultilinksValidEH(reco::PFBlockElement::TRACK);
-}
-
-// It would be better to use the official functions, but this seems a bit annoying for what I want to implement at the moment
-double TrackAndEHClusterLinker::testLinkECal(const reco::PFBlockElement* elem1,
-                                              const reco::PFBlockElement* elem2,
-                                              const reco::PFBlockElement* ehElem) const {
-  constexpr reco::PFTrajectoryPoint::LayerType ECALShowerMax = reco::PFTrajectoryPoint::ECALShowerMax;
-  const reco::PFBlockElementCluster* ecalelem(nullptr);
-  const reco::PFBlockElementTrack* tkelem(nullptr);
-  double dist(-1.0);
-  if (elem1->type() < elem2->type()) {
-    tkelem = static_cast<const reco::PFBlockElementTrack*>(elem1);
-    ecalelem = static_cast<const reco::PFBlockElementCluster*>(elem2);
-  } else {
-    tkelem = static_cast<const reco::PFBlockElementTrack*>(elem2);
-    ecalelem = static_cast<const reco::PFBlockElementCluster*>(elem1);
-  }
-  const reco::PFRecTrackRef& trackref = tkelem->trackRefPF();
-  const reco::PFClusterRef& clusterref = ecalelem->clusterRef();
-  if (trackref.isNull() || clusterref.isNull()) {
-    edm::LogWarning("TrackAndEHClusterLinker") << "Null track or ECAL cluster ref; skipping.";
-    return -1.;
-  }
-  const reco::PFCluster::REPPoint& ecalreppos = clusterref->positionREP();
-  const reco::PFTrajectoryPoint& tkAtECAL = trackref->extrapolatedPoint(ECALShowerMax);
-
-  // Check if the linking has been done using the KDTree algo
-  // Glowinski & Gouzevitch
-//  if (useKDTree_ && ehElem->isMultilinksValidEH(reco::PFBlockElement::TRACK)) {  //KDTree Algo
-//    const reco::PFEHMultilinksType& multilinks = ehElem->getMultilinksEH(reco::PFBlockElement::TRACK);
-
-
-  if (useKDTree_ && tkelem->isMultilinksValidEH(reco::PFBlockElement::EH)) {  //KDTree Algo
-    const reco::PFEHClusterRef& ehref = static_cast<const reco::PFBlockElementEHCluster*>(ehElem)->ehClusterRef();
-    const reco::PFEHMultilinksType& multilinks = tkelem->getMultilinksEH(reco::PFBlockElement::EH);
-    const double tracketa = tkAtECAL.positionREP().Eta();
-    const double trackphi = tkAtECAL.positionREP().Phi();
-    // Check if the link Track/Ecal exist
-    reco::PFEHMultilinksType::const_iterator mlit = multilinks.begin();
-    for (; mlit != multilinks.end(); ++mlit)
-      //if (mlit->trackRef == trackref)
-      if (mlit->clusterRef == ehref)
-        break;
-
-    // If the link exist, we fill dist and linktest.
-    if (mlit != multilinks.end()) {
-      dist = LinkByRecHit::computeDist(ecalreppos.Eta(), ecalreppos.Phi(), tracketa, trackphi);
-    }
-
-  } else {  // Old algorithm
-    if (tkAtECAL.isValid())
-      dist = LinkByRecHit::testTrackAndClusterByRecHit(*trackref, *clusterref, false, debug_);
-  }
-
-  if (debug_) {
-    if (dist > 0.) {
-      std::cout << " Here a link has been established"
-                << " between a track an Ecal with dist  " << dist << std::endl;
-    } else
-      std::cout << " No link found " << std::endl;
-  }
-  return dist;
 }
 
 double TrackAndEHClusterLinker::testLinkHCal(const reco::PFBlockElement* elem1,
@@ -162,13 +113,10 @@ double TrackAndEHClusterLinker::testLinkHCal(const reco::PFBlockElement* elem1,
   }
   // Check if the linking has been done using the KDTree algo
   // Glowinski & Gouzevitch
-  //  if (useKDTree_ && ehElem->isMultilinksValidEH(reco::PFBlockElement::TRACK)) {  //KDTree Algo
-    //  const reco::PFEHMultilinksType& multilinks = ehElem->getMultilinksEH(reco::PFBlockElement::TRACK);
 
  if (useKDTree_ && tkelem->isMultilinksValidEH(reco::PFBlockElement::EH)) {  //KDTree Algo
     const reco::PFEHClusterRef& ehref = static_cast<const reco::PFBlockElementEHCluster*>(ehElem)->ehClusterRef();
     const reco::PFEHMultilinksType& multilinks = tkelem->getMultilinksEH(reco::PFBlockElement::EH);
-
 
     // Check if the link Track/Hcal exist
     reco::PFEHMultilinksType::const_iterator mlit = multilinks.begin();
@@ -203,36 +151,6 @@ double TrackAndEHClusterLinker::testLinkHCal(const reco::PFBlockElement* elem1,
   return dist;
 }
 
-double TrackAndEHClusterLinker::testLinkHO(const reco::PFBlockElement* elem1,
-                                            const reco::PFBlockElement* elem2) const {
-  // No KDTree path exists for HO in this codebase (per TrackAndHOLinker.cc) --
-  // always uses the direct rechit-based test.
-  constexpr reco::PFTrajectoryPoint::LayerType HOLayer = reco::PFTrajectoryPoint::HOLayer;
-  const reco::PFBlockElementCluster* hoelem(nullptr);
-  const reco::PFBlockElementTrack* tkelem(nullptr);
-  double dist(-1.0);
-
-  if (elem1->type() < elem2->type()) {
-    tkelem = static_cast<const reco::PFBlockElementTrack*>(elem1);
-    hoelem = static_cast<const reco::PFBlockElementCluster*>(elem2);
-  } else {
-    tkelem = static_cast<const reco::PFBlockElementTrack*>(elem2);
-    hoelem = static_cast<const reco::PFBlockElementCluster*>(elem1);
-  }
-
-  const reco::PFClusterRef& horef = hoelem->clusterRef();
-  const reco::PFRecTrackRef& tkref = tkelem->trackRefPF();
-  if (horef.isNull() || tkref.isNull()) {
-    edm::LogWarning("TrackAndEHClusterLinker") << "Null HO cluster or track ref; skipping.";
-    return -1.;
-  }
-
-  if (tkelem->trackRef()->pt() > 3.00001 && tkref->extrapolatedPoint(HOLayer).isValid()) {
-    dist = LinkByRecHit::testTrackAndClusterByRecHit(*tkref, *horef, false, debug_);
-  }
-  return dist;
-}
-
 double TrackAndEHClusterLinker::testLink(const reco::PFBlockElement* elem1, const reco::PFBlockElement* elem2) const {
   const reco::PFBlockElementEHCluster* ehclustelem(nullptr);
   const reco::PFBlockElementTrack* tkelem(nullptr);
@@ -254,30 +172,12 @@ double TrackAndEHClusterLinker::testLink(const reco::PFBlockElement* elem1, cons
 
   double dist = -1.;
 
-/*
-  for (auto eclus : pfehcluster->ecalClusters()) {
-    if (eclus.isNull()) continue;
-    reco::PFBlockElementCluster ecalBlockElem(eclus, reco::PFBlockElement::ECAL);
-    double newdist = testLinkECal(tkelem, &ecalBlockElem, ehclustelem);
-    if (newdist >= 0. && (dist < 0. || newdist < dist)) dist = newdist;
-  }
-*/
-
   for (auto hclus : pfehcluster->hcalClusters()) {
     if (hclus.isNull()) continue;
     reco::PFBlockElementCluster hcalBlockElem(hclus, reco::PFBlockElement::HCAL);
     double newdist = testLinkHCal(tkelem, &hcalBlockElem, ehclustelem);
     if (newdist >= 0. && (dist < 0. || newdist < dist)) dist = newdist;
   }
-
-/*
-  for (auto oclus : pfehcluster->hoClusters()) {
-    if (oclus.isNull()) continue;
-    reco::PFBlockElementCluster hoBlockElem(oclus, reco::PFBlockElement::HO);
-    double newdist = testLinkHO(tkelem, &hoBlockElem);
-    if (newdist >= 0. && (dist < 0. || newdist < dist)) dist = newdist;
-  }
-*/
 
   return dist;
 }

@@ -67,8 +67,8 @@ double ECALAndEHClusterLinker::testLink(const reco::PFBlockElement* elem1, const
   }
 
   const reco::PFCluster::REPPoint& ecalreppos = ecalref->positionREP();
-  //if (std::abs(ecalreppos.Eta()) <= minAbsEtaEcal_)
-  if (std::abs(ecalreppos.Eta()) > minAbsEtaEcal_)
+  if (std::abs(ecalreppos.Eta()) <= minAbsEtaEcal_)
+  //if (std::abs(ecalreppos.Eta()) > minAbsEtaEcal_)
     return -1.0;
 
   // A pure-HCAL PFEHCluster has exactly one HCAL constituent; a genuine

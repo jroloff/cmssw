@@ -40,10 +40,10 @@ pfEHClusterProducer = cms.EDProducer(
     hoClusters   = cms.InputTag("particleFlowClusterHO"),
     # Maximum dR in eta-phi between an ECAL cluster and an HCAL/HF/HO
     # cluster for them to be merged into a single PFEHCluster.
-    #matchingDeltaR   = cms.double(0.0),
+    matchingDeltaR   = cms.double(0.0),
     matchingDeltaRHF = cms.double(0.0),
     matchingDeltaRHO = cms.double(0.0),
-    matchingDeltaR   = cms.double(0.15),
+    #matchingDeltaR   = cms.double(0.15),
     #matchingDeltaRHF = cms.double(0.3),
     #matchingDeltaRHO = cms.double(0.2),
 )

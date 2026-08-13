@@ -178,6 +178,19 @@ void PFEGammaProducer::produce(edm::StreamID, edm::Event& iEvent, const edm::Eve
           hoBlockRefs.push_back(blockref);
           singleEcalOrHcal = true;
           break;
+        case reco::PFBlockElement::EH: {
+          bool hasDeadHcalConstituent = false;
+          for (auto const& hcalConstituent : elements[0].ehClusterRef()->hcalClusters()) {
+            if (hcalConstituent->flags() & reco::CaloCluster::badHcalMarker) {
+              hasDeadHcalConstituent = true;
+              break;
+            }
+          }
+          if (hasDeadHcalConstituent)
+            continue;
+          hcalBlockRefs.push_back(blockref);
+          singleEcalOrHcal = true;
+        } break;
         default:
           break;
       }

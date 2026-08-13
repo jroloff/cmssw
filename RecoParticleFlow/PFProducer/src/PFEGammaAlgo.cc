@@ -119,7 +119,6 @@ namespace {
       default:
         break;
     }
-
     const float dist = block->dist(key, test, block->linkData(), reco::PFBlock::LINKTEST_ALL);
     if (dist == -1.0f)
       return false;  // don't associate non-linked elems
@@ -191,8 +190,9 @@ namespace {
         : comp(e), block(b), EoPin_cut(EoPcut) {}
     template <class T>
     bool operator()(const T& e) {
-      if (!e.flag() || valtype != e->type())
+      if (!e.flag() || valtype != e->type()){
         return false;
+      }
       return elementNotCloserToOther<useConv>(block, keytype, comp->index(), valtype, e->index(), EoPin_cut);
     }
   };
@@ -476,9 +476,10 @@ float PFEGammaAlgo::evaluateSingleLegMVA(const reco::PFBlockRef& blockRef,
   std::multimap<double, unsigned int> ecalAssoTrack;
   block.associatedElements(
       trackIndex, linkData, ecalAssoTrack, reco::PFBlockElement::ECAL, reco::PFBlock::LINKTEST_ALL);
+
   std::multimap<double, unsigned int> hcalAssoTrack;
   block.associatedElements(
-      trackIndex, linkData, hcalAssoTrack, reco::PFBlockElement::HCAL, reco::PFBlock::LINKTEST_ALL);
+      trackIndex, linkData, hcalAssoTrack, reco::PFBlockElement::EH, reco::PFBlock::LINKTEST_ALL);
   if (!ecalAssoTrack.empty()) {
     for (auto& itecal : ecalAssoTrack) {
       linkedE = linkedE + elements[itecal.second].clusterRef()->energy();
@@ -486,7 +487,7 @@ float PFEGammaAlgo::evaluateSingleLegMVA(const reco::PFBlockRef& blockRef,
   }
   if (!hcalAssoTrack.empty()) {
     for (auto& ithcal : hcalAssoTrack) {
-      linkedH = linkedH + elements[ithcal.second].clusterRef()->energy();
+      linkedH = linkedH + hcalElementEnergy(&elements[ithcal.second]);
     }
   }
   const float eOverPt = linkedE / elements[trackIndex].trackRef()->pt();
@@ -537,7 +538,7 @@ PFEGammaAlgo::EgammaObjects PFEGammaAlgo::operator()(const reco::PFBlockRef& blo
   std::list<ProtoEGObject> refinableObjects;
 
   _splayedblock.clear();
-  _splayedblock.resize(13);  // make sure that we always have the HGCAL entry
+  _splayedblock.resize(14);  // make sure that we always have the HGCAL entry
 
   _currentblock = block;
   _currentlinks = block->linkData();
@@ -547,8 +548,18 @@ PFEGammaAlgo::EgammaObjects PFEGammaAlgo::operator()(const reco::PFBlockRef& blo
   for (const auto& pfelement : _currentblock->elements()) {
     if (isMuon(pfelement))
       continue;  // don't allow muons in our element list
-    if (pfelement.type() == PFBlockElement::HCAL && pfelement.clusterRef()->flags() & reco::CaloCluster::badHcalMarker)
-      continue;  // skip also dead area markers for now
+    if (pfelement.type() == PFBlockElement::EH) {
+      bool hasDeadHcalConstituent = false;
+      for (auto const& hcalConstituent : pfelement.ehClusterRef()->hcalClusters()) {
+        if (hcalConstituent->flags() & reco::CaloCluster::badHcalMarker) {
+          hasDeadHcalConstituent = true;
+          break;
+        }
+      }
+      if (hasDeadHcalConstituent)
+        continue;
+    }
+
     const size_t itype = (size_t)pfelement.type();
     if (itype >= _splayedblock.size())
       _splayedblock.resize(itype + 1);
@@ -1264,21 +1275,18 @@ void PFEGammaAlgo::linkRefinableObjectPrimaryGSFTrackToECAL(ProtoEGObject& RO) {
   }
 }
 
-// try to associate the tracks to cluster elements which are not used
 void PFEGammaAlgo::linkRefinableObjectPrimaryGSFTrackToHCAL(ProtoEGObject& RO) {
-  if (_splayedblock[reco::PFBlockElement::HCAL].empty())
+  if (_splayedblock[reco::PFBlockElement::EH].empty())
     return;
-  auto HCALbegin = _splayedblock[reco::PFBlockElement::HCAL].begin();
-  auto HCALend = _splayedblock[reco::PFBlockElement::HCAL].end();
+  auto HCALbegin = _splayedblock[reco::PFBlockElement::EH].begin();
+  auto HCALend = _splayedblock[reco::PFBlockElement::EH].end();
   for (auto& primgsf : RO.primaryGSFs) {
-    NotCloserToOther<reco::PFBlockElement::GSF, reco::PFBlockElement::HCAL> gsfTracksToHCALs(_currentblock, primgsf);
+    NotCloserToOther<reco::PFBlockElement::GSF, reco::PFBlockElement::EH> gsfTracksToHCALs(_currentblock, primgsf);
     auto notmatched = std::partition(HCALbegin, HCALend, gsfTracksToHCALs);
     for (auto hcal = HCALbegin; hcal != notmatched; ++hcal) {
-      const PFClusterElement* elemascluster = docast(const PFClusterElement*, hcal->get());
-      FlaggedPtr<const PFClusterElement> temp(elemascluster, true);
-      LOGDRESSED("PFEGammaAlgo::linkGSFTracktoECAL()")
-          << "Found an HCAL cluster associated to GSF extrapolation" << std::endl;
-      RO.hcalClusters.push_back(temp.get());
+      const PFEHClusterElement* elemascluster = docast(const PFEHClusterElement*, hcal->get());
+      FlaggedPtr<const PFEHClusterElement> temp(elemascluster, true);
+      RO.ehClusters.push_back(temp.get());
       RO.localMap.insert(primgsf, temp.get());
       hcal->setFlag(false);
     }
@@ -1593,7 +1601,6 @@ PFEGammaAlgo::EgammaObjects PFEGammaAlgo::fillPFCandidates(const std::list<PFEGa
     }
     const float eleMVAValue = calculateEleMVA(RO, xtra);
     fillExtraInfo(RO, xtra);
-    //std::cout << "PFEG eleMVA: " << eleMVAValue << std::endl;
     xtra.setMVA(eleMVAValue);
     cand.set_mva_e_pi(eleMVAValue);
     output.candidates.push_back(cand);
@@ -1619,9 +1626,9 @@ float PFEGammaAlgo::calculateEleMVA(const PFEGammaAlgo::ProtoEGObject& ro, reco:
   double dEtGsfEcal = 1e6;
   double sigmaEtaEta = 1e-14;
   const double eneHcalGsf =
-      std::accumulate(ro.hcalClusters.begin(), ro.hcalClusters.end(), 0.0, [](const double a, auto const& b) {
-        return a + b->clusterRef()->energy();
-      });
+    std::accumulate(ro.ehClusters.begin(), ro.ehClusters.end(), 0.0, [](const double a, auto const& b) {
+      return a + hcalElementEnergy(b);
+    });
   if (!ro.primaryKFs.empty()) {
     refKf = ro.primaryKFs.front()->trackRef();
   }
@@ -1972,11 +1979,11 @@ void PFEGammaAlgo::unlinkRefinableObjectKFandECALMatchedToHCAL(ProtoEGObject& RO
   std::vector<bool> cluster_in_sc;
   auto ecal_begin = RO.ecalclusters.begin();
   auto ecal_end = RO.ecalclusters.end();
-  auto hcal_begin = _splayedblock[reco::PFBlockElement::HCAL].begin();
-  auto hcal_end = _splayedblock[reco::PFBlockElement::HCAL].end();
+  auto hcal_begin = _splayedblock[reco::PFBlockElement::EH].begin();
+  auto hcal_end = _splayedblock[reco::PFBlockElement::EH].end();
   for (auto secd_kf = RO.secondaryKFs.begin(); secd_kf != RO.secondaryKFs.end(); ++secd_kf) {
     bool remove_this_kf = false;
-    NotCloserToOther<reco::PFBlockElement::TRACK, reco::PFBlockElement::HCAL> tracksToHCALs(_currentblock, *secd_kf);
+    NotCloserToOther<reco::PFBlockElement::TRACK, reco::PFBlockElement::EH> tracksToHCALs(_currentblock, *secd_kf);
     reco::TrackRef trkRef = (*secd_kf)->trackRef();
 
     bool goodTrack = PFTrackAlgoTools::isGoodForEGM(trkRef->algo());
@@ -2002,7 +2009,7 @@ void PFEGammaAlgo::unlinkRefinableObjectKFandECALMatchedToHCAL(ProtoEGObject& RO
         auto hcal_matched = std::partition(hcal_begin, hcal_end, tracksToHCALs);
         for (auto hcalclus = hcal_begin; hcalclus != hcal_matched; ++hcalclus) {
           const reco::PFBlockElementCluster* clusthcal = docast(const reco::PFBlockElementCluster*, hcalclus->get());
-          const double hcalenergy = clusthcal->clusterRef()->energy();
+          const double hcalenergy = hcalElementEnergy(hcalclus->get());
           const double hpluse = ecalenergy + hcalenergy;
           const bool isHoHE = ((hcalenergy / hpluse) > 0.1 && goodTrack);
           const bool isHoE = (hcalenergy > ecalenergy);
@@ -2057,3 +2064,12 @@ bool PFEGammaAlgo::isPrimaryTrack(const reco::PFBlockElementTrack& KfEl, const r
 
   return isPrimary;
 }
+
+double PFEGammaAlgo::hcalElementEnergy(const reco::PFBlockElement* elem) {
+  if (elem->type() == reco::PFBlockElement::EH){
+    return elem->ehClusterRef()->rawHcalEnergy();
+  }
+  return elem->clusterRef()->energy();  // legacy plain-PFCluster element (HFEM/HFHAD, or pre-restructuring HCAL)
+}
+
+

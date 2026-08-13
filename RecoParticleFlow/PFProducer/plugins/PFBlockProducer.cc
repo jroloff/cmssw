@@ -277,6 +277,13 @@ void PFBlockProducer::fillDescriptions(edm::ConfigurationDescriptions& descripti
     }
     {
       edm::ParameterSet pset;
+      pset.addParameter<std::string>("linkerName", "EHAndHOLinker");
+      pset.addParameter<std::string>("linkType", "EH:HO");
+      pset.addParameter<bool>("useKDTree", false);
+      vpset.emplace_back(pset);
+    }
+    {
+      edm::ParameterSet pset;
       pset.addParameter<std::string>("linkerName", "HFEMAndHFHADLinker");
       pset.addParameter<std::string>("linkType", "HFEM:HFHAD");
       pset.addParameter<bool>("useKDTree", false);

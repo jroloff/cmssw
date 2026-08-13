@@ -155,10 +155,6 @@ void PFAlgo::reconstructParticles(const reco::PFBlockHandle& blockHandle, PFEGam
         singleEcalOrHcal = true;
       }
       if (elements[0].type() == reco::PFBlockElement::EH) {
-        // PFBlockElement::HCAL elements have been replaced by
-        // PFBlockElement::EH elements (carrying a PFEHClusterRef, mixed
-        // ECAL+HCAL or pure HCAL) -- this list still plays exactly the
-        // same role as the old "single HCAL block" list.
         hcalBlockRefs.push_back(blockref);
         singleEcalOrHcal = true;
       }
@@ -789,7 +785,7 @@ bool PFAlgo::recoTracksNotHCAL(const reco::PFBlock& block,
       std::multimap<double, unsigned> sortedHCAL;
       block.associatedElements( jTrack,  linkData,
     			    sortedHCAL,
-    			    reco::PFBlockElement::HCAL,
+    			    reco::PFBlockElement::EH,
     			    reco::PFBlock::LINKTEST_ALL );
       if ( sortedHCAL.size() ) continue;
 
@@ -1220,11 +1216,6 @@ int PFAlgo::decideType(const edm::OwnVector<reco::PFBlockElement>& elements,
       }
       return 1;  //continue
     case PFBlockElement::EH:
-      // PFBlockElement::HCAL has been replaced by PFBlockElement::EH,
-      // carrying a PFEHClusterRef (mixed ECAL+HCAL, or pure HCAL). We still
-      // only care about it here as "the HCAL-bearing element"; inds.hcalIs
-      // keeps its name for minimal downstream churn but now holds indices
-      // of EH elements.
       if (active[iEle]) {
         const reco::PFEHClusterRef& ehRef = elements[iEle].ehClusterRef();
         // The dead-HCAL-channel marker is set per HCAL PFCluster, not on
